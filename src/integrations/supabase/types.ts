@@ -23,6 +23,7 @@ export type Database = {
           difficulty: Database["public"]["Enums"]["challenge_difficulty"]
           files: string[] | null
           flag: string
+          hint_costs: number[] | null
           hints: string[] | null
           id: string
           is_active: boolean | null
@@ -39,6 +40,7 @@ export type Database = {
           difficulty: Database["public"]["Enums"]["challenge_difficulty"]
           files?: string[] | null
           flag: string
+          hint_costs?: number[] | null
           hints?: string[] | null
           id?: string
           is_active?: boolean | null
@@ -55,6 +57,7 @@ export type Database = {
           difficulty?: Database["public"]["Enums"]["challenge_difficulty"]
           files?: string[] | null
           flag?: string
+          hint_costs?: number[] | null
           hints?: string[] | null
           id?: string
           is_active?: boolean | null
@@ -69,6 +72,83 @@ export type Database = {
             columns: ["author_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      competition_settings: {
+        Row: {
+          created_at: string | null
+          decay_enabled: boolean | null
+          decay_minimum: number | null
+          end_time: string | null
+          freeze_time: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          start_time: string | null
+          team_mode: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          decay_enabled?: boolean | null
+          decay_minimum?: number | null
+          end_time?: string | null
+          freeze_time?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          start_time?: string | null
+          team_mode?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          decay_enabled?: boolean | null
+          decay_minimum?: number | null
+          end_time?: string | null
+          freeze_time?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          start_time?: string | null
+          team_mode?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      hint_unlocks: {
+        Row: {
+          challenge_id: string
+          created_at: string | null
+          hint_index: number
+          id: string
+          points_spent: number
+          user_id: string
+        }
+        Insert: {
+          challenge_id: string
+          created_at?: string | null
+          hint_index: number
+          id?: string
+          points_spent?: number
+          user_id: string
+        }
+        Update: {
+          challenge_id?: string
+          created_at?: string | null
+          hint_index?: number
+          id?: string
+          points_spent?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hint_unlocks_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "challenges"
             referencedColumns: ["id"]
           },
         ]
@@ -138,6 +218,7 @@ export type Database = {
           created_at: string | null
           id: string
           is_correct: boolean
+          is_first_blood: boolean | null
           points_awarded: number | null
           submitted_flag: string
           user_id: string
@@ -147,6 +228,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_correct: boolean
+          is_first_blood?: boolean | null
           points_awarded?: number | null
           submitted_flag: string
           user_id: string
@@ -156,6 +238,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_correct?: boolean
+          is_first_blood?: boolean | null
           points_awarded?: number | null
           submitted_flag?: string
           user_id?: string
