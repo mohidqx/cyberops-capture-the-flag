@@ -72,11 +72,10 @@ const Categories = () => {
 
   useEffect(() => {
     const fetchCategoryStats = async () => {
-      // Fetch all active challenges
+      // Use the secure public view that excludes flags
       const { data: challenges } = await supabase
-        .from("challenges")
-        .select("id, title, category, difficulty, points, solves")
-        .eq("is_active", true);
+        .from("challenges_public")
+        .select("id, title, category, difficulty, points, solves");
 
       if (!challenges) {
         setLoading(false);

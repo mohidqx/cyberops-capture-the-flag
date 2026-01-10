@@ -46,10 +46,10 @@ const Challenges = () => {
 
   useEffect(() => {
     const fetchChallenges = async () => {
+      // Use the secure public view that excludes flags
       const { data } = await supabase
-        .from("challenges")
+        .from("challenges_public")
         .select("*")
-        .eq("is_active", true)
         .order("points", { ascending: true });
 
       if (data) {
