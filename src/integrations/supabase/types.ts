@@ -82,6 +82,7 @@ export type Database = {
           created_at: string | null
           display_name: string | null
           id: string
+          notifications_enabled: boolean | null
           rank: number | null
           team_id: string | null
           total_points: number | null
@@ -97,6 +98,7 @@ export type Database = {
           created_at?: string | null
           display_name?: string | null
           id?: string
+          notifications_enabled?: boolean | null
           rank?: number | null
           team_id?: string | null
           total_points?: number | null
@@ -112,6 +114,7 @@ export type Database = {
           created_at?: string | null
           display_name?: string | null
           id?: string
+          notifications_enabled?: boolean | null
           rank?: number | null
           team_id?: string | null
           total_points?: number | null
