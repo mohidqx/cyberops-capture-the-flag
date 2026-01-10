@@ -26,7 +26,6 @@ interface Challenge {
   category: string;
   difficulty: string;
   points: number;
-  flag: string;
   hints: string[];
   hint_costs: number[];
   files: string[];
@@ -55,11 +54,11 @@ const ChallengeDetail = () => {
   const fetchChallenge = async () => {
     if (!id) return;
 
+    // Use the secure public view that excludes flags
     const { data } = await supabase
-      .from("challenges")
+      .from("challenges_public")
       .select("*")
       .eq("id", id)
-      .eq("is_active", true)
       .maybeSingle();
 
     if (data) {
@@ -135,7 +134,13 @@ const ChallengeDetail = () => {
 
     setSubmitting(true);
 
-    const isCorrect = flag.trim() === challenge.flag;
+    // Use secure server-side function to validate flag (flag never exposed to client)
+    const { data: validationResult } = await supabase.rpc('validate_challenge_flag', {
+      _challenge_id: challenge.id,
+      _submitted_flag: flag.trim()
+    });
+
+    const isCorrect = validationResult === true;
 
     // Check for first blood
     let isFirstBlood = false;

@@ -192,6 +192,13 @@ export type Database = {
             referencedRelation: "challenges"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "hint_unlocks_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "challenges_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       profiles: {
@@ -290,6 +297,13 @@ export type Database = {
             columns: ["challenge_id"]
             isOneToOne: false
             referencedRelation: "challenges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "submissions_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "challenges_public"
             referencedColumns: ["id"]
           },
         ]
@@ -405,11 +419,80 @@ export type Database = {
             referencedRelation: "challenges"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "writeups_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "challenges_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
     }
     Views: {
-      [_ in never]: never
+      challenges_public: {
+        Row: {
+          author_id: string | null
+          category: Database["public"]["Enums"]["challenge_category"] | null
+          created_at: string | null
+          description: string | null
+          difficulty: Database["public"]["Enums"]["challenge_difficulty"] | null
+          files: string[] | null
+          hint_costs: number[] | null
+          hints: string[] | null
+          id: string | null
+          is_active: boolean | null
+          points: number | null
+          solves: number | null
+          title: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          author_id?: string | null
+          category?: Database["public"]["Enums"]["challenge_category"] | null
+          created_at?: string | null
+          description?: string | null
+          difficulty?:
+            | Database["public"]["Enums"]["challenge_difficulty"]
+            | null
+          files?: string[] | null
+          hint_costs?: number[] | null
+          hints?: string[] | null
+          id?: string | null
+          is_active?: boolean | null
+          points?: number | null
+          solves?: number | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          author_id?: string | null
+          category?: Database["public"]["Enums"]["challenge_category"] | null
+          created_at?: string | null
+          description?: string | null
+          difficulty?:
+            | Database["public"]["Enums"]["challenge_difficulty"]
+            | null
+          files?: string[] | null
+          hint_costs?: number[] | null
+          hints?: string[] | null
+          id?: string | null
+          is_active?: boolean | null
+          points?: number | null
+          solves?: number | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "challenges_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       has_role: {
@@ -417,6 +500,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      validate_challenge_flag: {
+        Args: { _challenge_id: string; _submitted_flag: string }
         Returns: boolean
       }
     }
