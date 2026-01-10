@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Plus, Trash2, Users, Target, FileText, CheckCircle, XCircle, ShieldCheck, Settings, Clock, Trophy } from "lucide-react";
+import { Plus, Trash2, Users, Target, FileText, CheckCircle, XCircle, ShieldCheck, Clock, Trophy, Megaphone } from "lucide-react";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Writeup {
   id: string;
@@ -34,10 +35,21 @@ interface CompetitionSettings {
   team_mode: boolean;
 }
 
+interface Announcement {
+  id: string;
+  title: string;
+  content: string;
+  priority: "low" | "normal" | "high" | "urgent";
+  is_active: boolean;
+  created_at: string;
+}
+
 const Admin = () => {
+  const { profile } = useAuth();
   const [challenges, setChallenges] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [writeups, setWriteups] = useState<Writeup[]>([]);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [competitionSettings, setCompetitionSettings] = useState<CompetitionSettings | null>(null);
   const [newChallenge, setNewChallenge] = useState({
     title: "",
@@ -48,6 +60,15 @@ const Admin = () => {
     flag: "",
     hints: "",
     hint_costs: "",
+  });
+  const [newAnnouncement, setNewAnnouncement] = useState<{
+    title: string;
+    content: string;
+    priority: "low" | "normal" | "high" | "urgent";
+  }>({
+    title: "",
+    content: "",
+    priority: "normal",
   });
 
   const fetchData = async () => {
@@ -62,6 +83,8 @@ const Admin = () => {
     if (w) setWriteups(w as Writeup[]);
     const { data: cs } = await supabase.from("competition_settings").select("*").eq("name", "default").maybeSingle();
     if (cs) setCompetitionSettings(cs as CompetitionSettings);
+    const { data: ann } = await supabase.from("announcements").select("*").order("created_at", { ascending: false });
+    if (ann) setAnnouncements(ann as Announcement[]);
   };
 
   useEffect(() => {
@@ -150,6 +173,40 @@ const Admin = () => {
 
   const pendingWriteups = writeups.filter((w) => !w.is_approved);
 
+  const createAnnouncement = async () => {
+    if (!newAnnouncement.title || !newAnnouncement.content) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
+    const { error } = await supabase.from("announcements").insert({
+      title: newAnnouncement.title,
+      content: newAnnouncement.content,
+      priority: newAnnouncement.priority,
+      author_id: profile?.id,
+    } as any);
+
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Announcement created!");
+    setNewAnnouncement({ title: "", content: "", priority: "normal" });
+    fetchData();
+  };
+
+  const deleteAnnouncement = async (id: string) => {
+    await supabase.from("announcements").delete().eq("id", id);
+    toast.success("Announcement deleted");
+    fetchData();
+  };
+
+  const toggleAnnouncementActive = async (id: string, isActive: boolean) => {
+    await supabase.from("announcements").update({ is_active: !isActive }).eq("id", id);
+    toast.success(isActive ? "Announcement hidden" : "Announcement visible");
+    fetchData();
+  };
+
   return (
     <DashboardLayout>
       <div className="max-w-6xl mx-auto">
@@ -162,6 +219,9 @@ const Admin = () => {
           <TabsList className="mb-6 flex-wrap">
             <TabsTrigger value="challenges"><Target className="mr-2 h-4 w-4" />Challenges</TabsTrigger>
             <TabsTrigger value="users"><Users className="mr-2 h-4 w-4" />Users</TabsTrigger>
+            <TabsTrigger value="announcements">
+              <Megaphone className="mr-2 h-4 w-4" />Announcements
+            </TabsTrigger>
             <TabsTrigger value="writeups" className="relative">
               <FileText className="mr-2 h-4 w-4" />Writeups
               {pendingWriteups.length > 0 && (
@@ -316,6 +376,86 @@ const Admin = () => {
                 ))}
               </div>
             )}
+          </TabsContent>
+
+          {/* Announcements Tab */}
+          <TabsContent value="announcements">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="font-display text-xl font-bold">Announcements ({announcements.length})</h2>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="hero"><Plus className="mr-2 h-4 w-4" />New Announcement</Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-lg">
+                  <DialogHeader><DialogTitle>Create Announcement</DialogTitle></DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <Label>Title</Label>
+                      <Input 
+                        value={newAnnouncement.title} 
+                        onChange={(e) => setNewAnnouncement({ ...newAnnouncement, title: e.target.value })} 
+                        placeholder="Important Update"
+                      />
+                    </div>
+                    <div>
+                      <Label>Content</Label>
+                      <Textarea 
+                        className="min-h-[100px]" 
+                        value={newAnnouncement.content} 
+                        onChange={(e) => setNewAnnouncement({ ...newAnnouncement, content: e.target.value })}
+                        placeholder="Announcement details..."
+                      />
+                    </div>
+                    <div>
+                      <Label>Priority</Label>
+                      <Select 
+                        value={newAnnouncement.priority} 
+                        onValueChange={(v: "low" | "normal" | "high" | "urgent") => setNewAnnouncement({ ...newAnnouncement, priority: v })}
+                      >
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="low">Low</SelectItem>
+                          <SelectItem value="normal">Normal</SelectItem>
+                          <SelectItem value="high">High</SelectItem>
+                          <SelectItem value="urgent">Urgent</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Button onClick={createAnnouncement} variant="hero" className="w-full">Create Announcement</Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+            <div className="rounded-xl border border-border bg-card overflow-hidden">
+              {announcements.length === 0 ? (
+                <div className="p-8 text-center text-muted-foreground font-mono">No announcements yet</div>
+              ) : (
+                <div className="divide-y divide-border">
+                  {announcements.map((a) => (
+                    <div key={a.id} className={`px-6 py-4 flex items-center justify-between ${!a.is_active ? 'opacity-50' : ''}`}>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className={`px-2 py-0.5 text-xs rounded uppercase font-mono ${
+                            a.priority === 'urgent' ? 'bg-destructive/20 text-destructive' :
+                            a.priority === 'high' ? 'bg-yellow-500/20 text-yellow-400' :
+                            a.priority === 'normal' ? 'bg-primary/20 text-primary' :
+                            'bg-muted text-muted-foreground'
+                          }`}>{a.priority}</span>
+                          <div className="font-mono font-semibold">{a.title}</div>
+                        </div>
+                        <div className="text-sm text-muted-foreground mt-1 line-clamp-1">{a.content}</div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Switch checked={a.is_active} onCheckedChange={() => toggleAnnouncementActive(a.id, a.is_active)} />
+                        <Button variant="ghost" size="sm" onClick={() => deleteAnnouncement(a.id)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </TabsContent>
 
           {/* Competition Tab */}

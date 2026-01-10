@@ -5,6 +5,7 @@ import DashboardLayout from "@/layouts/DashboardLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
+import Announcements from "@/components/Announcements";
 
 interface Submission {
   id: string;
@@ -115,6 +116,9 @@ const Dashboard = () => {
             Ready to hack some challenges?
           </p>
         </motion.div>
+
+        {/* Announcements */}
+        <Announcements />
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

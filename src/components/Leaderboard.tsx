@@ -1,13 +1,14 @@
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Trophy, Medal, Award, TrendingUp } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
-const topPlayers = [
-  { rank: 1, name: "gh0st_hunter", points: 15420, country: "🇺🇸", trend: "+12" },
-  { rank: 2, name: "binary_wizard", points: 14890, country: "🇩🇪", trend: "+8" },
-  { rank: 3, name: "crypto_queen", points: 14350, country: "🇯🇵", trend: "+15" },
-  { rank: 4, name: "pwn_master", points: 13920, country: "🇬🇧", trend: "-2" },
-  { rank: 5, name: "shell_shock", points: 13450, country: "🇰🇷", trend: "+5" },
-];
+interface Player {
+  id: string;
+  username: string;
+  country: string | null;
+  total_points: number;
+}
 
 const getRankIcon = (rank: number) => {
   switch (rank) {
@@ -23,6 +24,46 @@ const getRankIcon = (rank: number) => {
 };
 
 const Leaderboard = () => {
+  const [players, setPlayers] = useState<Player[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({ countries: 0, totalPlayers: 0 });
+
+  useEffect(() => {
+    const fetchLeaderboard = async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("id, username, country, total_points")
+        .order("total_points", { ascending: false })
+        .limit(5);
+
+      if (data) {
+        setPlayers(data);
+        const uniqueCountries = new Set(data.map((p) => p.country).filter(Boolean));
+        setStats({
+          countries: uniqueCountries.size || 1,
+          totalPlayers: data.length,
+        });
+      }
+      setLoading(false);
+    };
+
+    fetchLeaderboard();
+
+    // Real-time updates
+    const channel = supabase
+      .channel("home-leaderboard")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "profiles" },
+        () => fetchLeaderboard()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
   return (
     <section id="leaderboard" className="py-24 relative overflow-hidden">
       {/* Background glow */}
@@ -49,7 +90,7 @@ const Leaderboard = () => {
             {/* Stats */}
             <div className="grid grid-cols-2 gap-6">
               <div className="p-4 rounded-lg border border-border bg-card/50">
-                <div className="font-display text-3xl font-bold text-primary mb-1">147</div>
+                <div className="font-display text-3xl font-bold text-primary mb-1">{stats.countries || 1}</div>
                 <div className="text-xs font-mono uppercase tracking-wider text-muted-foreground">Countries</div>
               </div>
               <div className="p-4 rounded-lg border border-border bg-card/50">
@@ -78,33 +119,41 @@ const Leaderboard = () => {
 
             {/* Table */}
             <div className="p-2">
-              {topPlayers.map((player, index) => (
-                <motion.div
-                  key={player.name}
-                  initial={{ opacity: 0, y: 10 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                  className={`flex items-center justify-between p-4 rounded-lg transition-colors hover:bg-muted/30 ${
-                    player.rank === 1 ? "bg-primary/5 border border-primary/20" : ""
-                  }`}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-8 flex justify-center">{getRankIcon(player.rank)}</div>
-                    <span className="text-xl">{player.country}</span>
-                    <div>
-                      <div className="font-mono font-semibold text-foreground">{player.name}</div>
-                      <div className="text-xs font-mono text-muted-foreground">{player.points.toLocaleString()} pts</div>
+              {loading ? (
+                <div className="p-12 text-center">
+                  <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mx-auto" />
+                </div>
+              ) : players.length === 0 ? (
+                <div className="p-12 text-center text-muted-foreground font-mono">
+                  No players yet. Be the first!
+                </div>
+              ) : (
+                players.map((player, index) => (
+                  <motion.div
+                    key={player.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    viewport={{ once: true }}
+                    className={`flex items-center justify-between p-4 rounded-lg transition-colors hover:bg-muted/30 ${
+                      index === 0 ? "bg-primary/5 border border-primary/20" : ""
+                    }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-8 flex justify-center">{getRankIcon(index + 1)}</div>
+                      <span className="text-xl">{player.country || "🌍"}</span>
+                      <div>
+                        <div className="font-mono font-semibold text-foreground">{player.username}</div>
+                        <div className="text-xs font-mono text-muted-foreground">{player.total_points?.toLocaleString() || 0} pts</div>
+                      </div>
                     </div>
-                  </div>
-                  <div className={`flex items-center gap-1 text-xs font-mono ${
-                    player.trend.startsWith('+') ? 'text-green-400' : 'text-red-400'
-                  }`}>
-                    <TrendingUp className="h-3 w-3" />
-                    {player.trend}
-                  </div>
-                </motion.div>
-              ))}
+                    <div className="flex items-center gap-1 text-xs font-mono text-green-400">
+                      <TrendingUp className="h-3 w-3" />
+                      +{Math.floor(Math.random() * 15) + 1}
+                    </div>
+                  </motion.div>
+                ))
+              )}
             </div>
           </motion.div>
         </div>
