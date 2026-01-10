@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Trophy, Medal, Award, TrendingUp, Users } from "lucide-react";
+import { Trophy, Medal, Award, TrendingUp, Users, Clock, Lock } from "lucide-react";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -20,7 +20,13 @@ interface Team {
   name: string;
   avatar_url: string | null;
   total_points: number;
-  member_count?: number;
+}
+
+interface CompetitionSettings {
+  is_active: boolean;
+  freeze_time: string | null;
+  team_mode: boolean;
+  end_time: string | null;
 }
 
 const getRankIcon = (rank: number) => {
@@ -36,13 +42,37 @@ const getRankIcon = (rank: number) => {
   }
 };
 
+const formatTimeRemaining = (ms: number) => {
+  const hours = Math.floor(ms / (1000 * 60 * 60));
+  const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((ms % (1000 * 60)) / 1000);
+  return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+};
+
 const LeaderboardPage = () => {
   const [players, setPlayers] = useState<Player[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
+  const [competitionSettings, setCompetitionSettings] = useState<CompetitionSettings | null>(null);
+  const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
+  const [isFrozen, setIsFrozen] = useState(false);
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
+      // Fetch competition settings
+      const { data: settings } = await supabase
+        .from("competition_settings")
+        .select("is_active, freeze_time, team_mode, end_time")
+        .eq("name", "default")
+        .maybeSingle();
+
+      if (settings) {
+        setCompetitionSettings(settings);
+        if (settings.freeze_time && new Date(settings.freeze_time) <= new Date()) {
+          setIsFrozen(true);
+        }
+      }
+
       // Fetch players
       const { data: playersData } = await supabase
         .from("profiles")
@@ -69,7 +99,44 @@ const LeaderboardPage = () => {
     };
 
     fetchLeaderboard();
-  }, []);
+
+    // Real-time updates (unless frozen)
+    const channel = supabase
+      .channel("leaderboard-updates")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "profiles" },
+        () => {
+          if (!isFrozen) fetchLeaderboard();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [isFrozen]);
+
+  // Countdown timer
+  useEffect(() => {
+    if (!competitionSettings?.is_active || !competitionSettings.end_time) {
+      setTimeRemaining(null);
+      return;
+    }
+
+    const updateTime = () => {
+      const end = new Date(competitionSettings.end_time!).getTime();
+      const now = Date.now();
+      const remaining = Math.max(0, end - now);
+      setTimeRemaining(remaining);
+    };
+
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, [competitionSettings]);
+
+  const defaultTab = competitionSettings?.team_mode ? "teams" : "players";
 
   return (
     <DashboardLayout>
@@ -83,11 +150,49 @@ const LeaderboardPage = () => {
             Leaderboard
           </h1>
           <p className="text-muted-foreground font-mono text-sm">
-            Global rankings updated in real-time
+            {isFrozen ? "Scoreboard is frozen!" : "Global rankings updated in real-time"}
           </p>
         </motion.div>
 
-        <Tabs defaultValue="players" className="w-full">
+        {/* Competition Timer & Status */}
+        {competitionSettings?.is_active && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 p-4 rounded-xl border border-primary/30 bg-primary/5"
+          >
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse" />
+                <span className="font-mono font-semibold text-foreground">Competition LIVE</span>
+                {competitionSettings.team_mode && (
+                  <span className="px-2 py-0.5 text-xs font-mono bg-neon-cyan/10 text-neon-cyan rounded">
+                    Team Mode
+                  </span>
+                )}
+              </div>
+
+              {timeRemaining !== null && (
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-primary" />
+                  <span className="font-mono text-xl font-bold text-primary">
+                    {formatTimeRemaining(timeRemaining)}
+                  </span>
+                  <span className="text-xs text-muted-foreground">remaining</span>
+                </div>
+              )}
+
+              {isFrozen && (
+                <div className="flex items-center gap-2 text-yellow-400">
+                  <Lock className="h-4 w-4" />
+                  <span className="text-sm font-mono">Scoreboard Frozen</span>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+
+        <Tabs defaultValue={defaultTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-6">
             <TabsTrigger value="players" className="font-mono uppercase tracking-wider">
               <TrendingUp className="mr-2 h-4 w-4" />
@@ -105,7 +210,6 @@ const LeaderboardPage = () => {
               animate={{ opacity: 1 }}
               className="rounded-xl border border-border bg-card overflow-hidden"
             >
-              {/* Header */}
               <div className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-border bg-muted/30 text-xs font-mono uppercase tracking-wider text-muted-foreground">
                 <div className="col-span-1">Rank</div>
                 <div className="col-span-5">Player</div>
@@ -139,24 +243,14 @@ const LeaderboardPage = () => {
                       <div className="col-span-5 flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold shrink-0">
                           {player.avatar_url ? (
-                            <img
-                              src={player.avatar_url}
-                              alt={player.username}
-                              className="w-full h-full rounded-full object-cover"
-                            />
+                            <img src={player.avatar_url} alt={player.username} className="w-full h-full rounded-full object-cover" />
                           ) : (
                             player.username[0].toUpperCase()
                           )}
                         </div>
                         <div className="min-w-0">
-                          <div className="font-mono font-semibold truncate">
-                            {player.username}
-                          </div>
-                          {player.country && (
-                            <div className="text-xs text-muted-foreground">
-                              {player.country}
-                            </div>
-                          )}
+                          <div className="font-mono font-semibold truncate">{player.username}</div>
+                          {player.country && <div className="text-xs text-muted-foreground">{player.country}</div>}
                         </div>
                       </div>
                       <div className="col-span-3 text-center font-mono text-muted-foreground">
@@ -178,7 +272,6 @@ const LeaderboardPage = () => {
               animate={{ opacity: 1 }}
               className="rounded-xl border border-border bg-card overflow-hidden"
             >
-              {/* Header */}
               <div className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-border bg-muted/30 text-xs font-mono uppercase tracking-wider text-muted-foreground">
                 <div className="col-span-1">Rank</div>
                 <div className="col-span-8">Team</div>
@@ -212,9 +305,7 @@ const LeaderboardPage = () => {
                         <div className="w-10 h-10 rounded-lg bg-neon-cyan/20 flex items-center justify-center text-neon-cyan font-bold shrink-0">
                           {team.name[0].toUpperCase()}
                         </div>
-                        <div className="font-mono font-semibold">
-                          {team.name}
-                        </div>
+                        <div className="font-mono font-semibold">{team.name}</div>
                       </div>
                       <div className="col-span-3 text-right font-display text-xl font-bold text-neon-cyan">
                         {team.total_points.toLocaleString()}
