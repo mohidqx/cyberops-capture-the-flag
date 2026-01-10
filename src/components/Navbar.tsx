@@ -48,13 +48,17 @@ const Navbar = () => {
 
           {/* CTA */}
           <div className="hidden md:flex items-center gap-4">
-            <Button variant="ghost" size="sm">
-              <Terminal className="mr-2 h-4 w-4" />
-              Login
-            </Button>
-            <Button variant="hero" size="sm">
-              Join CTF
-            </Button>
+            <a href="/login">
+              <Button variant="ghost" size="sm">
+                <Terminal className="mr-2 h-4 w-4" />
+                Login
+              </Button>
+            </a>
+            <a href="/signup">
+              <Button variant="hero" size="sm">
+                Join CTF
+              </Button>
+            </a>
           </div>
 
           {/* Mobile Menu Button */}
