@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { ChevronRight, Terminal, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import CountdownTimer from "./CountdownTimer";
 const Hero = () => {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-grid">
@@ -73,6 +74,16 @@ const Hero = () => {
                 View Challenges
               </Link>
             </Button>
+          </motion.div>
+
+          {/* Countdown Timer */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
+            className="mt-10"
+          >
+            <CountdownTimer />
           </motion.div>
 
           {/* Stats bar */}
