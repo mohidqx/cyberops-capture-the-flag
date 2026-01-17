@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   const [email, setEmail] = useState("");
@@ -115,24 +116,24 @@ const Footer = () => {
             </h4>
             <ul className="space-y-2">
               <li>
-                <a href="#" className="text-sm text-foreground hover:text-primary transition-colors">
+                <Link to="/privacy" className="text-sm text-foreground hover:text-primary transition-colors">
                   Privacy Policy
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-sm text-foreground hover:text-primary transition-colors">
+                <Link to="/terms" className="text-sm text-foreground hover:text-primary transition-colors">
                   Terms of Service
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-sm text-foreground hover:text-primary transition-colors">
+                <Link to="/rules" className="text-sm text-foreground hover:text-primary transition-colors">
                   Competition Rules
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-sm text-foreground hover:text-primary transition-colors">
+                <Link to="/conduct" className="text-sm text-foreground hover:text-primary transition-colors">
                   Code of Conduct
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
