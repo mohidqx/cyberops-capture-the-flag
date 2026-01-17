@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Menu, X, Shield, Terminal } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -88,12 +89,16 @@ const Navbar = () => {
               </a>
             ))}
             <div className="flex flex-col gap-2 mt-4 pt-4 border-t border-border/50">
-              <Button variant="ghost" size="sm" className="justify-start">
-                <Terminal className="mr-2 h-4 w-4" />
-                Login
+              <Button variant="ghost" size="sm" className="justify-start" asChild>
+                <Link to="/login" onClick={() => setIsOpen(false)}>
+                  <Terminal className="mr-2 h-4 w-4" />
+                  Login
+                </Link>
               </Button>
-              <Button variant="hero" size="sm">
-                Join CTF
+              <Button variant="hero" size="sm" asChild>
+                <Link to="/signup" onClick={() => setIsOpen(false)}>
+                  Join CTF
+                </Link>
               </Button>
             </div>
           </motion.div>

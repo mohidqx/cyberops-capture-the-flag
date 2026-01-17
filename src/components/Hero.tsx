@@ -91,7 +91,7 @@ const Hero = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.8 }}
-            className="mt-16 grid grid-cols-3 gap-8 max-w-2xl mx-auto"
+            className="mt-16 pb-20 grid grid-cols-3 gap-8 max-w-2xl mx-auto"
           >
             {[
               { value: "2,847", label: "Active Hackers" },
@@ -109,19 +109,19 @@ const Hero = () => {
             ))}
           </motion.div>
         </motion.div>
-
-        {/* Terminal decoration */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2 text-muted-foreground"
-        >
-          <span className="text-primary font-mono text-sm">root@cyberops:~$</span>
-          <span className="font-mono text-sm">scroll_down</span>
-          <span className="w-2 h-4 bg-primary animate-terminal-blink" />
-        </motion.div>
       </div>
+
+      {/* Terminal decoration - moved outside container for better positioning */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1 }}
+        className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 text-muted-foreground z-10"
+      >
+        <span className="text-primary font-mono text-sm">root@cyberops:~$</span>
+        <span className="font-mono text-sm">scroll_down</span>
+        <span className="w-2 h-4 bg-primary animate-terminal-blink" />
+      </motion.div>
     </section>
   );
 };
