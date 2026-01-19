@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Plus, Trash2, Users, Target, FileText, CheckCircle, XCircle, ShieldCheck, Clock, Trophy, Megaphone, Edit, Award, Image } from "lucide-react";
+import { Plus, Trash2, Users, Target, FileText, CheckCircle, XCircle, ShieldCheck, Clock, Trophy, Megaphone, Edit, Award, Image, Mail, MessageSquare } from "lucide-react";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,6 +55,16 @@ interface Sponsor {
   display_order: number;
 }
 
+interface ContactSubmission {
+  id: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  is_resolved: boolean;
+  created_at: string;
+}
+
 const Admin = () => {
   const { profile } = useAuth();
   const [challenges, setChallenges] = useState<any[]>([]);
@@ -62,6 +72,7 @@ const Admin = () => {
   const [writeups, setWriteups] = useState<Writeup[]>([]);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [sponsors, setSponsors] = useState<Sponsor[]>([]);
+  const [contactSubmissions, setContactSubmissions] = useState<ContactSubmission[]>([]);
   const [competitionSettings, setCompetitionSettings] = useState<CompetitionSettings | null>(null);
   const [editingChallenge, setEditingChallenge] = useState<any | null>(null);
   const [editingSponsor, setEditingSponsor] = useState<Sponsor | null>(null);
@@ -109,6 +120,8 @@ const Admin = () => {
     if (ann) setAnnouncements(ann as Announcement[]);
     const { data: sp } = await supabase.from("sponsors").select("*").order("display_order", { ascending: true });
     if (sp) setSponsors(sp as Sponsor[]);
+    const { data: cs2 } = await supabase.from("contact_submissions").select("*").order("created_at", { ascending: false });
+    if (cs2) setContactSubmissions(cs2 as ContactSubmission[]);
   };
 
   useEffect(() => {
@@ -228,6 +241,19 @@ const Admin = () => {
   };
 
   const pendingWriteups = writeups.filter((w) => !w.is_approved);
+  const unresolvedContacts = contactSubmissions.filter((c) => !c.is_resolved);
+
+  const toggleContactResolved = async (id: string, isResolved: boolean) => {
+    await supabase.from("contact_submissions").update({ is_resolved: !isResolved }).eq("id", id);
+    toast.success(isResolved ? "Marked as unresolved" : "Marked as resolved");
+    fetchData();
+  };
+
+  const deleteContactSubmission = async (id: string) => {
+    await supabase.from("contact_submissions").delete().eq("id", id);
+    toast.success("Submission deleted");
+    fetchData();
+  };
 
   const createAnnouncement = async () => {
     if (!newAnnouncement.title || !newAnnouncement.content) {
@@ -349,6 +375,14 @@ const Admin = () => {
               )}
             </TabsTrigger>
             <TabsTrigger value="competition"><Trophy className="mr-2 h-4 w-4" />Competition</TabsTrigger>
+            <TabsTrigger value="contacts" className="relative">
+              <Mail className="mr-2 h-4 w-4" />Contacts
+              {unresolvedContacts.length > 0 && (
+                <span className="ml-2 px-2 py-0.5 text-xs bg-blue-500/20 text-blue-400 rounded-full">
+                  {unresolvedContacts.length}
+                </span>
+              )}
+            </TabsTrigger>
           </TabsList>
 
           {/* Challenges Tab */}
@@ -932,6 +966,96 @@ const Admin = () => {
                       </span>
                     </div>
                   </div>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          {/* Contacts Tab */}
+          <TabsContent value="contacts">
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h2 className="font-display text-xl font-bold">
+                  Contact Submissions ({contactSubmissions.length})
+                </h2>
+                <div className="text-sm text-muted-foreground font-mono">
+                  {unresolvedContacts.length} unresolved
+                </div>
+              </div>
+
+              {contactSubmissions.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  <MessageSquare className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>No contact submissions yet</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {contactSubmissions.map((submission) => (
+                    <div
+                      key={submission.id}
+                      className={`p-4 rounded-xl border ${
+                        submission.is_resolved
+                          ? "border-border/50 bg-card/30 opacity-60"
+                          : "border-blue-500/30 bg-blue-500/5"
+                      }`}
+                    >
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-semibold text-foreground">{submission.subject}</h3>
+                            {submission.is_resolved && (
+                              <span className="px-2 py-0.5 text-xs bg-green-500/20 text-green-400 rounded-full">
+                                Resolved
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-4 text-xs text-muted-foreground font-mono">
+                            <span className="flex items-center gap-1">
+                              <Users className="w-3 h-3" />
+                              {submission.name}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Mail className="w-3 h-3" />
+                              {submission.email}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              {new Date(submission.created_at).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => toggleContactResolved(submission.id, submission.is_resolved)}
+                            className={submission.is_resolved ? "text-muted-foreground" : "text-green-400 hover:text-green-300"}
+                          >
+                            <CheckCircle className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => deleteContactSubmission(submission.id)}
+                            className="text-red-400 hover:text-red-300"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      <p className="text-sm text-muted-foreground whitespace-pre-wrap bg-background/50 p-3 rounded-lg border border-border/30">
+                        {submission.message}
+                      </p>
+                      <div className="mt-3">
+                        <a
+                          href={`mailto:${submission.email}?subject=Re: ${encodeURIComponent(submission.subject)}`}
+                          className="text-xs text-primary hover:underline font-mono"
+                        >
+                          Reply via email →
+                        </a>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
