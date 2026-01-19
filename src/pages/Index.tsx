@@ -3,6 +3,7 @@ import Hero from "@/components/Hero";
 import Challenges from "@/components/Challenges";
 import Leaderboard from "@/components/Leaderboard";
 import About from "@/components/About";
+import Resources from "@/components/Resources";
 import Sponsors from "@/components/Sponsors";
 import Footer from "@/components/Footer";
 
@@ -14,6 +15,7 @@ const Index = () => {
       <Challenges />
       <Leaderboard />
       <About />
+      <Resources />
       <Sponsors />
       <Footer />
     </div>
