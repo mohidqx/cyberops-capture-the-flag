@@ -55,6 +55,39 @@ export type Database = {
           },
         ]
       }
+      audit_logs: {
+        Row: {
+          challenge_id: string | null
+          created_at: string | null
+          details: Json | null
+          event_type: string
+          id: string
+          ip_address: string | null
+          target_user_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          challenge_id?: string | null
+          created_at?: string | null
+          details?: Json | null
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          target_user_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          challenge_id?: string | null
+          created_at?: string | null
+          details?: Json | null
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          target_user_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       challenges: {
         Row: {
           author_id: string | null
@@ -672,6 +705,7 @@ export type Database = {
       }
     }
     Functions: {
+      admin_reset_user_scores: { Args: { _username: string }; Returns: Json }
       get_my_team_invite_code: { Args: { _team_id: string }; Returns: string }
       has_role: {
         Args: {
@@ -679,6 +713,16 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      log_audit_event: {
+        Args: {
+          _challenge_id?: string
+          _details?: Json
+          _event_type: string
+          _target_user_id?: string
+          _user_id?: string
+        }
+        Returns: undefined
       }
       submit_flag: {
         Args: { _challenge_id: string; _submitted_flag: string }
