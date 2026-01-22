@@ -354,6 +354,48 @@ export type Database = {
         }
         Relationships: []
       }
+      submission_rate_limits: {
+        Row: {
+          attempt_count: number
+          challenge_id: string
+          created_at: string | null
+          id: string
+          user_id: string
+          window_start: string
+        }
+        Insert: {
+          attempt_count?: number
+          challenge_id: string
+          created_at?: string | null
+          id?: string
+          user_id: string
+          window_start?: string
+        }
+        Update: {
+          attempt_count?: number
+          challenge_id?: string
+          created_at?: string | null
+          id?: string
+          user_id?: string
+          window_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "submission_rate_limits_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "challenges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "submission_rate_limits_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "challenges_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       submissions: {
         Row: {
           challenge_id: string
@@ -637,6 +679,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      submit_flag: {
+        Args: { _challenge_id: string; _submitted_flag: string }
+        Returns: Json
       }
       unlock_hint: {
         Args: {
