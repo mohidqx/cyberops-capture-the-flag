@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Plus, Trash2, Users, Target, FileText, CheckCircle, XCircle, ShieldCheck, Clock, Trophy, Megaphone, Edit, Award, Image, Mail, MessageSquare } from "lucide-react";
+import { Plus, Trash2, Users, Target, FileText, CheckCircle, XCircle, ShieldCheck, Clock, Trophy, Megaphone, Edit, Award, Image, Mail, MessageSquare, ShieldAlert } from "lucide-react";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +24,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import ChallengeFileUpload from "@/components/ChallengeFileUpload";
+import AuditLogViewer from "@/components/AuditLogViewer";
+import AdminSecurityNotifications from "@/components/AdminSecurityNotifications";
 
 interface Writeup {
   id: string;
@@ -366,6 +368,7 @@ const Admin = () => {
 
   return (
     <DashboardLayout>
+      <AdminSecurityNotifications />
       <div className="max-w-6xl mx-auto">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
           <h1 className="font-display text-3xl font-bold text-foreground mb-2">Admin Panel</h1>
@@ -398,6 +401,9 @@ const Admin = () => {
                   {unresolvedContacts.length}
                 </span>
               )}
+            </TabsTrigger>
+            <TabsTrigger value="audit-logs">
+              <ShieldAlert className="mr-2 h-4 w-4" />Audit Logs
             </TabsTrigger>
           </TabsList>
 
@@ -1075,6 +1081,11 @@ const Admin = () => {
                 </div>
               )}
             </div>
+          </TabsContent>
+
+          {/* Audit Logs Tab */}
+          <TabsContent value="audit-logs">
+            <AuditLogViewer />
           </TabsContent>
         </Tabs>
 
