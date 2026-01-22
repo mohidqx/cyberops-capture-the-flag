@@ -103,24 +103,26 @@ const ChallengeDetail = () => {
 
     const cost = challenge.hint_costs?.[index] || 0;
 
-    if (profile.total_points < cost) {
-      toast.error(`Not enough points! You need ${cost} pts`);
+    // Use atomic database function to prevent race conditions
+    const { data, error } = await supabase.rpc('unlock_hint', {
+      _user_id: user.id,
+      _challenge_id: challenge.id,
+      _hint_index: index,
+      _cost: cost
+    });
+
+    if (error) {
+      toast.error("Failed to unlock hint. Please try again.");
       return;
     }
 
-    // Deduct points
-    await supabase
-      .from("profiles")
-      .update({ total_points: profile.total_points - cost })
-      .eq("user_id", user.id);
+    const result = data as { success: boolean; message: string; cost?: number };
 
-    // Record unlock
-    await supabase.from("hint_unlocks").insert({
-      user_id: user.id,
-      challenge_id: challenge.id,
-      hint_index: index,
-      points_spent: cost,
-    });
+    if (!result.success) {
+      toast.error(result.message);
+      setHintToUnlock(null);
+      return;
+    }
 
     setUnlockedHints((prev) => new Set([...prev, index]));
     setHintToUnlock(null);

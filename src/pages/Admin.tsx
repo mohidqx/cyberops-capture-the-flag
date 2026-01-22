@@ -8,6 +8,16 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
@@ -76,6 +86,7 @@ const Admin = () => {
   const [competitionSettings, setCompetitionSettings] = useState<CompetitionSettings | null>(null);
   const [editingChallenge, setEditingChallenge] = useState<any | null>(null);
   const [editingSponsor, setEditingSponsor] = useState<Sponsor | null>(null);
+  const [promotingUserId, setPromotingUserId] = useState<string | null>(null);
   const [newChallenge, setNewChallenge] = useState({
     title: "",
     description: "",
@@ -214,13 +225,18 @@ const Admin = () => {
     fetchData();
   };
 
-  const makeAdmin = async (userId: string) => {
-    const { error } = await supabase.from("user_roles").upsert({ user_id: userId, role: "admin" as any });
+  const confirmMakeAdmin = async () => {
+    if (!promotingUserId) return;
+    
+    const { error } = await supabase.from("user_roles").upsert({ user_id: promotingUserId, role: "admin" as any });
     if (error) {
       toast.error(error.message);
+      setPromotingUserId(null);
       return;
     }
     toast.success("User promoted to admin!");
+    setPromotingUserId(null);
+    fetchData();
   };
 
   const updateCompetitionSettings = async (updates: Partial<CompetitionSettings>) => {
@@ -563,7 +579,7 @@ const Admin = () => {
                       </div>
                       <div className="flex items-center gap-3">
                         <span className="font-display font-bold text-primary">{u.total_points} pts</span>
-                        <Button variant="ghost" size="sm" onClick={() => makeAdmin(u.user_id)} title="Make admin">
+                        <Button variant="ghost" size="sm" onClick={() => setPromotingUserId(u.user_id)} title="Make admin">
                           <ShieldCheck className="h-4 w-4 text-neon-cyan" />
                         </Button>
                       </div>
@@ -1061,6 +1077,27 @@ const Admin = () => {
             </div>
           </TabsContent>
         </Tabs>
+
+        {/* Admin Promotion Confirmation Dialog */}
+        <AlertDialog open={!!promotingUserId} onOpenChange={(open) => !open && setPromotingUserId(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="font-display">Promote to Admin?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will grant <span className="font-semibold text-foreground">{users.find(u => u.user_id === promotingUserId)?.username}</span> full administrative privileges including the ability to manage challenges, users, and settings. This action cannot be easily undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={confirmMakeAdmin}
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                Confirm Promotion
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </DashboardLayout>
   );

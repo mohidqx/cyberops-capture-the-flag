@@ -638,6 +638,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      unlock_hint: {
+        Args: {
+          _challenge_id: string
+          _cost: number
+          _hint_index: number
+          _user_id: string
+        }
+        Returns: Json
+      }
       validate_challenge_flag: {
         Args: { _challenge_id: string; _submitted_flag: string }
         Returns: boolean
