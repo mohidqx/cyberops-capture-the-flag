@@ -28,13 +28,14 @@ interface AuditLog {
 }
 
 const EVENT_TYPE_CONFIG: Record<string, { icon: typeof Shield; color: string; label: string; severity: "info" | "warn" | "error" }> = {
-  FLAG_CORRECT: { icon: CheckCircle, color: "text-green-400", label: "Correct Flag", severity: "info" },
+  FLAG_CORRECT: { icon: CheckCircle, color: "text-primary", label: "Correct Flag", severity: "info" },
   FLAG_INCORRECT: { icon: XCircle, color: "text-muted-foreground", label: "Incorrect Flag", severity: "info" },
-  RATE_LIMIT_HIT: { icon: Clock, color: "text-yellow-400", label: "Rate Limited", severity: "warn" },
-  SCORE_MANIPULATION_BLOCKED: { icon: AlertTriangle, color: "text-red-400", label: "Score Manipulation Blocked", severity: "error" },
-  ADMIN_SCORE_RESET: { icon: Shield, color: "text-blue-400", label: "Admin Score Reset", severity: "warn" },
-  USER_BANNED: { icon: Ban, color: "text-red-400", label: "User Banned", severity: "error" },
-  USER_UNBANNED: { icon: UserCheck, color: "text-green-400", label: "User Unbanned", severity: "info" },
+  RATE_LIMIT_HIT: { icon: Clock, color: "text-secondary", label: "Rate Limited", severity: "warn" },
+  SCORE_MANIPULATION_BLOCKED: { icon: AlertTriangle, color: "text-destructive", label: "Score Manipulation Blocked", severity: "error" },
+  ADMIN_SCORE_RESET: { icon: Shield, color: "text-secondary", label: "Admin Score Reset", severity: "warn" },
+  USER_BANNED: { icon: Ban, color: "text-destructive", label: "User Banned", severity: "error" },
+  USER_UNBANNED: { icon: UserCheck, color: "text-primary", label: "User Unbanned", severity: "info" },
+  BANNED_USER_ATTEMPT: { icon: AlertTriangle, color: "text-destructive", label: "Banned User Attempt", severity: "error" },
 };
 
 const AuditLogViewer = () => {

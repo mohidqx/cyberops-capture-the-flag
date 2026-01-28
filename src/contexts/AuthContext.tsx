@@ -58,6 +58,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const trackSession = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      
+      await supabase.functions.invoke("track-session", {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+    } catch (error) {
+      console.error("Failed to track session:", error);
+    }
+  };
+
   const refreshProfile = async () => {
     if (user) {
       await fetchProfile(user.id);
@@ -72,6 +87,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         if (session?.user) {
           setTimeout(() => fetchProfile(session.user.id), 0);
+          // Track session on sign in
+          if (event === "SIGNED_IN") {
+            setTimeout(() => trackSession(), 100);
+          }
         } else {
           setProfile(null);
           setIsAdmin(false);
