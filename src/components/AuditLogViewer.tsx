@@ -1,13 +1,17 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Shield, AlertTriangle, CheckCircle, XCircle, Clock, RefreshCw, Search, Filter } from "lucide-react";
+import { Shield, AlertTriangle, CheckCircle, XCircle, Clock, RefreshCw, Search, Filter, Ban, UserCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 interface AuditLog {
   id: string;
@@ -18,8 +22,8 @@ interface AuditLog {
   details: Record<string, any> | null;
   ip_address: string | null;
   created_at: string;
-  user_profile?: { username: string } | null;
-  target_profile?: { username: string } | null;
+  user_profile?: { username: string; is_banned?: boolean } | null;
+  target_profile?: { username: string; is_banned?: boolean } | null;
   challenge?: { title: string } | null;
 }
 
@@ -29,6 +33,8 @@ const EVENT_TYPE_CONFIG: Record<string, { icon: typeof Shield; color: string; la
   RATE_LIMIT_HIT: { icon: Clock, color: "text-yellow-400", label: "Rate Limited", severity: "warn" },
   SCORE_MANIPULATION_BLOCKED: { icon: AlertTriangle, color: "text-red-400", label: "Score Manipulation Blocked", severity: "error" },
   ADMIN_SCORE_RESET: { icon: Shield, color: "text-blue-400", label: "Admin Score Reset", severity: "warn" },
+  USER_BANNED: { icon: Ban, color: "text-red-400", label: "User Banned", severity: "error" },
+  USER_UNBANNED: { icon: UserCheck, color: "text-green-400", label: "User Unbanned", severity: "info" },
 };
 
 const AuditLogViewer = () => {
@@ -37,6 +43,10 @@ const AuditLogViewer = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
   const [filterSeverity, setFilterSeverity] = useState<string>("all");
+  const [banDialogOpen, setBanDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<{ username: string; userId: string; isBanned: boolean } | null>(null);
+  const [banReason, setBanReason] = useState("");
+  const [actionLoading, setActionLoading] = useState(false);
 
   const fetchLogs = async () => {
     setLoading(true);
@@ -63,8 +73,8 @@ const AuditLogViewer = () => {
 
     const [{ data: profiles }, { data: challenges }] = await Promise.all([
       userIds.length > 0 
-        ? supabase.from("profiles").select("user_id, username").in("user_id", userIds)
-        : Promise.resolve({ data: [] as { user_id: string; username: string }[] }),
+        ? supabase.from("profiles").select("user_id, username, is_banned").in("user_id", userIds)
+        : Promise.resolve({ data: [] as { user_id: string; username: string; is_banned: boolean }[] }),
       challengeIds.length > 0
         ? supabase.from("challenges").select("id, title").in("id", challengeIds)
         : Promise.resolve({ data: [] as { id: string; title: string }[] })
@@ -148,6 +158,63 @@ const AuditLogViewer = () => {
     };
   };
 
+  const openBanDialog = (username: string, userId: string, isBanned: boolean) => {
+    setSelectedUser({ username, userId, isBanned });
+    setBanReason("");
+    setBanDialogOpen(true);
+  };
+
+  const handleBanUser = async () => {
+    if (!selectedUser) return;
+    setActionLoading(true);
+
+    const { data, error } = await supabase.rpc("admin_ban_user", {
+      _username: selectedUser.username,
+      _reason: banReason || null
+    });
+
+    setActionLoading(false);
+
+    if (error) {
+      toast.error(`Failed to ban user: ${error.message}`);
+      return;
+    }
+
+    const result = data as { success: boolean; message: string };
+    if (result.success) {
+      toast.success(`User ${selectedUser.username} has been banned`);
+      setBanDialogOpen(false);
+      fetchLogs();
+    } else {
+      toast.error(result.message);
+    }
+  };
+
+  const handleUnbanUser = async () => {
+    if (!selectedUser) return;
+    setActionLoading(true);
+
+    const { data, error } = await supabase.rpc("admin_unban_user", {
+      _username: selectedUser.username
+    });
+
+    setActionLoading(false);
+
+    if (error) {
+      toast.error(`Failed to unban user: ${error.message}`);
+      return;
+    }
+
+    const result = data as { success: boolean; message: string };
+    if (result.success) {
+      toast.success(`User ${selectedUser.username} has been unbanned`);
+      setBanDialogOpen(false);
+      fetchLogs();
+    } else {
+      toast.error(result.message);
+    }
+  };
+
   const renderDetails = (log: AuditLog) => {
     if (!log.details) return null;
     
@@ -156,8 +223,8 @@ const AuditLogViewer = () => {
     if (log.event_type === "SCORE_MANIPULATION_BLOCKED") {
       return (
         <div className="text-xs font-mono space-y-1">
-          <div>Attempted: <span className="text-red-400">{details.attempted_points} pts</span></div>
-          <div>Actual: <span className="text-green-400">{details.actual_points} pts</span></div>
+          <div>Attempted: <span className="text-destructive">{details.attempted_points} pts</span></div>
+          <div>Actual: <span className="text-primary">{details.actual_points} pts</span></div>
         </div>
       );
     }
@@ -175,15 +242,23 @@ const AuditLogViewer = () => {
       return (
         <div className="text-xs font-mono">
           +{details.points_awarded} pts
-          {details.first_blood && <Badge variant="outline" className="ml-2 text-yellow-400 border-yellow-400/30">First Blood</Badge>}
+          {details.first_blood && <Badge variant="outline" className="ml-2 text-secondary border-secondary/30">First Blood</Badge>}
         </div>
       );
     }
 
     if (log.event_type === "RATE_LIMIT_HIT") {
       return (
-        <div className="text-xs font-mono text-yellow-400">
+        <div className="text-xs font-mono text-secondary">
           {details.attempts} attempts blocked
+        </div>
+      );
+    }
+
+    if (log.event_type === "USER_BANNED") {
+      return (
+        <div className="text-xs font-mono text-destructive">
+          {details.reason || "No reason provided"}
         </div>
       );
     }
@@ -252,22 +327,23 @@ const AuditLogViewer = () => {
           <TableHeader>
             <TableRow className="bg-muted/30">
               <TableHead className="w-[180px]">Time</TableHead>
-              <TableHead className="w-[200px]">Event</TableHead>
+              <TableHead className="w-[180px]">Event</TableHead>
               <TableHead>User</TableHead>
               <TableHead>Target/Challenge</TableHead>
               <TableHead>Details</TableHead>
+              <TableHead className="w-[100px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                   Loading audit logs...
                 </TableCell>
               </TableRow>
             ) : filteredLogs.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                   No logs found matching your filters
                 </TableCell>
               </TableRow>
@@ -275,6 +351,7 @@ const AuditLogViewer = () => {
               filteredLogs.map((log, index) => {
                 const config = getEventConfig(log.event_type);
                 const Icon = config.icon;
+                const userProfile = log.user_profile;
                 
                 return (
                   <motion.tr
@@ -283,7 +360,7 @@ const AuditLogViewer = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.02 }}
                     className={`border-b border-border/50 ${
-                      config.severity === "error" ? "bg-red-500/5" : 
+                      config.severity === "error" ? "bg-destructive/5" : 
                       config.severity === "warn" ? "bg-yellow-500/5" : ""
                     }`}
                   >
@@ -297,7 +374,14 @@ const AuditLogViewer = () => {
                       </div>
                     </TableCell>
                     <TableCell className="font-mono text-sm">
-                      {log.user_profile?.username || "-"}
+                      <div className="flex items-center gap-2">
+                        {userProfile?.username || "-"}
+                        {userProfile?.is_banned && (
+                          <Badge variant="destructive" className="text-xs py-0 px-1">
+                            <Ban className="w-3 h-3" />
+                          </Badge>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell className="text-sm">
                       {log.target_profile?.username && (
@@ -311,6 +395,28 @@ const AuditLogViewer = () => {
                     <TableCell>
                       {renderDetails(log)}
                     </TableCell>
+                    <TableCell>
+                      {userProfile && log.user_id && (
+                        <Button
+                          variant={userProfile.is_banned ? "outline" : "destructive"}
+                          size="sm"
+                          className="h-7 text-xs"
+                          onClick={() => openBanDialog(userProfile.username, log.user_id!, userProfile.is_banned || false)}
+                        >
+                          {userProfile.is_banned ? (
+                            <>
+                              <UserCheck className="w-3 h-3 mr-1" />
+                              Unban
+                            </>
+                          ) : (
+                            <>
+                              <Ban className="w-3 h-3 mr-1" />
+                              Ban
+                            </>
+                          )}
+                        </Button>
+                      )}
+                    </TableCell>
                   </motion.tr>
                 );
               })
@@ -322,6 +428,72 @@ const AuditLogViewer = () => {
       <p className="text-xs text-muted-foreground text-center">
         Showing {filteredLogs.length} of {logs.length} logs (last 200)
       </p>
+
+      {/* Ban/Unban Dialog */}
+      <Dialog open={banDialogOpen} onOpenChange={setBanDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {selectedUser?.isBanned ? (
+                <>
+                  <UserCheck className="w-5 h-5 text-primary" />
+                  Unban User
+                </>
+              ) : (
+                <>
+                  <Ban className="w-5 h-5 text-destructive" />
+                  Ban User
+                </>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div>
+              <Label className="text-muted-foreground">Username</Label>
+              <p className="font-mono text-lg">{selectedUser?.username}</p>
+            </div>
+            
+            {!selectedUser?.isBanned && (
+              <div>
+                <Label htmlFor="ban-reason">Reason (optional)</Label>
+                <Textarea
+                  id="ban-reason"
+                  placeholder="Enter reason for banning this user..."
+                  value={banReason}
+                  onChange={(e) => setBanReason(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+            )}
+            
+            {selectedUser?.isBanned ? (
+              <p className="text-sm text-muted-foreground">
+                This will restore the user's access to the platform.
+              </p>
+            ) : (
+              <p className="text-sm text-destructive/80">
+                This will prevent the user from submitting flags and participating in the competition.
+              </p>
+            )}
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBanDialogOpen(false)}>
+              Cancel
+            </Button>
+            {selectedUser?.isBanned ? (
+              <Button onClick={handleUnbanUser} disabled={actionLoading}>
+                {actionLoading ? "Processing..." : "Unban User"}
+              </Button>
+            ) : (
+              <Button variant="destructive" onClick={handleBanUser} disabled={actionLoading}>
+                {actionLoading ? "Processing..." : "Ban User"}
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

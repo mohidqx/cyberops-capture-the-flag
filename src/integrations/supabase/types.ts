@@ -288,12 +288,16 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          ban_reason: string | null
+          banned_at: string | null
+          banned_by: string | null
           bio: string | null
           challenges_solved: number | null
           country: string | null
           created_at: string | null
           display_name: string | null
           id: string
+          is_banned: boolean
           notifications_enabled: boolean | null
           rank: number | null
           team_id: string | null
@@ -304,12 +308,16 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          ban_reason?: string | null
+          banned_at?: string | null
+          banned_by?: string | null
           bio?: string | null
           challenges_solved?: number | null
           country?: string | null
           created_at?: string | null
           display_name?: string | null
           id?: string
+          is_banned?: boolean
           notifications_enabled?: boolean | null
           rank?: number | null
           team_id?: string | null
@@ -320,12 +328,16 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          ban_reason?: string | null
+          banned_at?: string | null
+          banned_by?: string | null
           bio?: string | null
           challenges_solved?: number | null
           country?: string | null
           created_at?: string | null
           display_name?: string | null
           id?: string
+          is_banned?: boolean
           notifications_enabled?: boolean | null
           rank?: number | null
           team_id?: string | null
@@ -705,7 +717,12 @@ export type Database = {
       }
     }
     Functions: {
+      admin_ban_user: {
+        Args: { _reason?: string; _username: string }
+        Returns: Json
+      }
       admin_reset_user_scores: { Args: { _username: string }; Returns: Json }
+      admin_unban_user: { Args: { _username: string }; Returns: Json }
       get_my_team_invite_code: { Args: { _team_id: string }; Returns: string }
       has_role: {
         Args: {

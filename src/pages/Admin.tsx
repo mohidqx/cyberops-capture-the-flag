@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Plus, Trash2, Users, Target, FileText, CheckCircle, XCircle, ShieldCheck, Clock, Trophy, Megaphone, Edit, Award, Image, Mail, MessageSquare, ShieldAlert } from "lucide-react";
+import { Plus, Trash2, Users, Target, FileText, CheckCircle, XCircle, ShieldCheck, Clock, Trophy, Megaphone, Edit, Award, Image, Mail, MessageSquare, ShieldAlert, BarChart3 } from "lucide-react";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +26,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import ChallengeFileUpload from "@/components/ChallengeFileUpload";
 import AuditLogViewer from "@/components/AuditLogViewer";
 import AdminSecurityNotifications from "@/components/AdminSecurityNotifications";
+import SecurityDashboard from "@/components/SecurityDashboard";
 
 interface Writeup {
   id: string;
@@ -401,6 +402,9 @@ const Admin = () => {
                   {unresolvedContacts.length}
                 </span>
               )}
+            </TabsTrigger>
+            <TabsTrigger value="security">
+              <BarChart3 className="mr-2 h-4 w-4" />Security
             </TabsTrigger>
             <TabsTrigger value="audit-logs">
               <ShieldAlert className="mr-2 h-4 w-4" />Audit Logs
@@ -1081,6 +1085,11 @@ const Admin = () => {
                 </div>
               )}
             </div>
+          </TabsContent>
+
+          {/* Security Dashboard Tab */}
+          <TabsContent value="security">
+            <SecurityDashboard />
           </TabsContent>
 
           {/* Audit Logs Tab */}
