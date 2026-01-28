@@ -554,6 +554,45 @@ export type Database = {
         }
         Relationships: []
       }
+      user_sessions: {
+        Row: {
+          city: string | null
+          country_code: string | null
+          country_name: string | null
+          created_at: string
+          id: string
+          ip_address: unknown
+          latitude: number | null
+          longitude: number | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          city?: string | null
+          country_code?: string | null
+          country_name?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: unknown
+          latitude?: number | null
+          longitude?: number | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          city?: string | null
+          country_code?: string | null
+          country_name?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: unknown
+          latitude?: number | null
+          longitude?: number | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       writeups: {
         Row: {
           author_id: string
@@ -740,6 +779,18 @@ export type Database = {
           _user_id?: string
         }
         Returns: undefined
+      }
+      log_user_session: {
+        Args: {
+          _city?: string
+          _country_code?: string
+          _country_name?: string
+          _ip_address: string
+          _latitude?: number
+          _longitude?: number
+          _user_agent?: string
+        }
+        Returns: Json
       }
       submit_flag: {
         Args: { _challenge_id: string; _submitted_flag: string }

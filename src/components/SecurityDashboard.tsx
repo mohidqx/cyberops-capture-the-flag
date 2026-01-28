@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Shield, AlertTriangle, TrendingUp, Clock, Activity, Users, Ban } from "lucide-react";
+import { Shield, AlertTriangle, TrendingUp, Clock, Activity, Users, Ban, Globe, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, LineChart, Line } from "recharts";
 import { format, subDays, startOfDay, eachDayOfInterval, eachHourOfInterval, subHours } from "date-fns";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface AuditLog {
   id: string;
@@ -19,6 +22,17 @@ interface SubmissionData {
   is_correct: boolean;
 }
 
+interface UserSession {
+  id: string;
+  user_id: string;
+  ip_address: string | null;
+  country_code: string | null;
+  country_name: string | null;
+  city: string | null;
+  created_at: string;
+  profile?: { username: string } | null;
+}
+
 const CHART_COLORS = {
   primary: "hsl(142, 100%, 50%)",
   secondary: "hsl(185, 100%, 50%)",
@@ -30,6 +44,7 @@ const CHART_COLORS = {
 const SecurityDashboard = () => {
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [submissions, setSubmissions] = useState<SubmissionData[]>([]);
+  const [sessions, setSessions] = useState<UserSession[]>([]);
   const [bannedCount, setBannedCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -40,7 +55,7 @@ const SecurityDashboard = () => {
   const fetchData = async () => {
     setLoading(true);
     
-    const [logsResult, submissionsResult, bannedResult] = await Promise.all([
+    const [logsResult, submissionsResult, bannedResult, sessionsResult] = await Promise.all([
       supabase
         .from("audit_logs")
         .select("id, event_type, created_at, details")
@@ -54,12 +69,36 @@ const SecurityDashboard = () => {
       supabase
         .from("profiles")
         .select("id", { count: "exact" })
-        .eq("is_banned", true)
+        .eq("is_banned", true),
+      supabase
+        .from("user_sessions")
+        .select("*")
+        .gte("created_at", subDays(new Date(), 7).toISOString())
+        .order("created_at", { ascending: false })
+        .limit(100)
     ]);
 
     if (logsResult.data) setAuditLogs(logsResult.data as AuditLog[]);
     if (submissionsResult.data) setSubmissions(submissionsResult.data);
     if (bannedResult.count !== null) setBannedCount(bannedResult.count);
+    
+    // Fetch profiles for sessions
+    if (sessionsResult.data && sessionsResult.data.length > 0) {
+      const userIds = [...new Set(sessionsResult.data.map(s => s.user_id))];
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, username")
+        .in("user_id", userIds);
+      
+      const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
+      
+      const enrichedSessions = sessionsResult.data.map(s => ({
+        ...s,
+        profile: profileMap.get(s.user_id) || null
+      }));
+      
+      setSessions(enrichedSessions as UserSession[]);
+    }
     
     setLoading(false);
   };
@@ -71,6 +110,7 @@ const SecurityDashboard = () => {
     rateLimitHits: auditLogs.filter(l => l.event_type === "RATE_LIMIT_HIT").length,
     manipulationBlocks: auditLogs.filter(l => l.event_type === "SCORE_MANIPULATION_BLOCKED").length,
     bannedUsers: bannedCount,
+    uniqueCountries: new Set(sessions.filter(s => s.country_code).map(s => s.country_code)).size,
   };
 
   // Prepare submission trends (hourly for last 24h)
@@ -128,6 +168,22 @@ const SecurityDashboard = () => {
       count: hourLogs.length,
     };
   });
+
+  // Country distribution from sessions
+  const countryDistribution = Object.entries(
+    sessions.reduce((acc, s) => {
+      const country = s.country_name || "Unknown";
+      acc[country] = (acc[country] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>)
+  )
+    .map(([name, value], index) => ({ 
+      name, 
+      value, 
+      color: [CHART_COLORS.primary, CHART_COLORS.secondary, CHART_COLORS.warning, CHART_COLORS.danger, CHART_COLORS.muted][index % 5]
+    }))
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 5);
 
   const chartConfig = {
     correct: { label: "Correct", color: CHART_COLORS.primary },
@@ -397,6 +453,114 @@ const SecurityDashboard = () => {
                   />
                 </LineChart>
               </ChartContainer>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
+
+      {/* Charts Row 3 - Geo & Sessions */}
+      <div className="grid md:grid-cols-2 gap-6">
+        {/* Country Distribution */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}>
+          <Card className="bg-card/50 border-border/50">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base font-display flex items-center gap-2">
+                <Globe className="h-4 w-4 text-secondary" />
+                Login Locations (7d)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[250px] w-full flex items-center justify-center">
+                {countryDistribution.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={countryDistribution}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={90}
+                        paddingAngle={2}
+                        dataKey="value"
+                        label={({ name, value }) => `${name} (${value})`}
+                        labelLine={false}
+                      >
+                        {countryDistribution.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="text-center">
+                    <Globe className="h-12 w-12 text-muted-foreground/30 mx-auto mb-2" />
+                    <p className="text-muted-foreground text-sm">No session data yet</p>
+                    <p className="text-xs text-muted-foreground/60">Sessions are tracked on user login</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Recent Sessions */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}>
+          <Card className="bg-card/50 border-border/50">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base font-display flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-primary" />
+                Recent Sessions
+                {stats.uniqueCountries > 0 && (
+                  <Badge variant="outline" className="ml-2 text-xs">
+                    {stats.uniqueCountries} countries
+                  </Badge>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <ScrollArea className="h-[250px]">
+                {sessions.length > 0 ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/20">
+                        <TableHead className="text-xs">User</TableHead>
+                        <TableHead className="text-xs">Location</TableHead>
+                        <TableHead className="text-xs">IP</TableHead>
+                        <TableHead className="text-xs">Time</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {sessions.slice(0, 20).map((session) => (
+                        <TableRow key={session.id} className="text-xs">
+                          <TableCell className="font-mono py-2">
+                            {session.profile?.username || "Unknown"}
+                          </TableCell>
+                          <TableCell className="py-2">
+                            {session.city && session.country_code 
+                              ? `${session.city}, ${session.country_code}`
+                              : session.country_name || "—"
+                            }
+                          </TableCell>
+                          <TableCell className="font-mono text-muted-foreground py-2">
+                            {session.ip_address || "—"}
+                          </TableCell>
+                          <TableCell className="text-muted-foreground py-2">
+                            {format(new Date(session.created_at), "MMM d, HH:mm")}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <div className="text-center py-8">
+                      <MapPin className="h-12 w-12 text-muted-foreground/30 mx-auto mb-2" />
+                      <p className="text-muted-foreground text-sm">No sessions recorded</p>
+                    </div>
+                  </div>
+                )}
+              </ScrollArea>
             </CardContent>
           </Card>
         </motion.div>
