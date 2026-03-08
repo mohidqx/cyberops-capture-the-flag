@@ -27,6 +27,9 @@ import ChallengeFileUpload from "@/components/ChallengeFileUpload";
 import AuditLogViewer from "@/components/AuditLogViewer";
 import AdminSecurityNotifications from "@/components/AdminSecurityNotifications";
 import SecurityDashboard from "@/components/SecurityDashboard";
+import VisitorLogViewer from "@/components/VisitorLogViewer";
+import UserActivityTimeline from "@/components/UserActivityTimeline";
+import AnomalyDetection from "@/components/AnomalyDetection";
 
 interface Writeup {
   id: string;
