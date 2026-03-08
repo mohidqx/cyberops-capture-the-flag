@@ -412,6 +412,15 @@ const Admin = () => {
             <TabsTrigger value="audit-logs">
               <ShieldAlert className="mr-2 h-4 w-4" />Audit Logs
             </TabsTrigger>
+            <TabsTrigger value="visitors">
+              <Eye className="mr-2 h-4 w-4" />Visitors
+            </TabsTrigger>
+            <TabsTrigger value="investigation">
+              <Activity className="mr-2 h-4 w-4" />Investigation
+            </TabsTrigger>
+            <TabsTrigger value="anomalies">
+              <AlertTriangle className="mr-2 h-4 w-4" />Anomalies
+            </TabsTrigger>
           </TabsList>
 
           {/* Challenges Tab */}
