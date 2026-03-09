@@ -371,7 +371,7 @@ const SecurityDashboard = () => {
           <Card className="bg-card/50 border-border/50">
             <CardHeader className="pb-2">
               <CardTitle className="text-base font-display flex items-center gap-2">
-                <Clock className="h-4 w-4 text-yellow-400" />
+                <Clock className="h-4 w-4 text-neon-orange" />
                 Rate Limit Activity (24h)
               </CardTitle>
             </CardHeader>
