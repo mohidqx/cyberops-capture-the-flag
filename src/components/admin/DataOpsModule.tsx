@@ -132,9 +132,9 @@ export const DataOpsModule = ({ onAction }: { onAction?: (action: string) => voi
         <C2Panel title="BACKUP MANAGEMENT" icon={Archive} color="text-primary">
           <div className="p-4 space-y-3">
             <div className="grid grid-cols-3 gap-2">
-              <ActionBtn icon={Database} label="Full Backup" color="primary" />
-              <ActionBtn icon={RefreshCw} label="Restore Latest" color="neon-orange" />
-              <ActionBtn icon={Clock} label="Schedule" color="secondary" />
+              <ActionBtn icon={Database} label="Full Backup" color="primary" onClick={() => onAction?.("Backup DB")} />
+              <ActionBtn icon={RefreshCw} label="Restore Latest" color="neon-orange" onClick={() => onAction?.("Restore Latest")} />
+              <ActionBtn icon={Clock} label="Schedule" color="secondary" onClick={() => onAction?.("Schedule")} />
             </div>
             <SectionLabel label="Backup History" color="primary" />
             {[
