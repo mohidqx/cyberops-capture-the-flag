@@ -9,6 +9,7 @@ import { format, subDays, startOfDay, eachDayOfInterval, eachHourOfInterval, sub
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import WorldMapHeatmap from "@/components/WorldMapHeatmap";
 
 interface AuditLog {
   id: string;
