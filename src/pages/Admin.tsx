@@ -590,7 +590,7 @@ const Admin = () => {
           {/* Users Tab */}
           <TabsContent value="users">
             <h2 className="font-display text-xl font-bold mb-4">All Users ({users.length})</h2>
-            <div className="rounded-xl border border-border bg-card overflow-hidden">
+            <div className="glass-card rounded-xl overflow-hidden">
               {users.length === 0 ? (
                 <div className="p-8 text-center text-muted-foreground font-mono">No users yet</div>
               ) : (
