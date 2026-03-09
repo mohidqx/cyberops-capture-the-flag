@@ -8,7 +8,7 @@ import {
 import { C2Panel, ConfigToggle, ConfigInput, SectionLabel, ActionBtn } from "./C2Shared";
 import { Switch } from "@/components/ui/switch";
 
-export const SystemConfigModule = () => {
+export const SystemConfigModule = ({ onAction }: { onAction?: (action: string) => void }) => {
   const [config, setConfig] = useState({
     // General
     siteName: "CyberOps CTF",
