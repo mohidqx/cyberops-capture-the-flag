@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { C2Panel, SectionLabel, ActionBtn } from "./C2Shared";
 
-export const PerformanceModule = () => {
+export const PerformanceModule = ({ onAction }: { onAction?: (action: string) => void }) => {
   const [metrics, setMetrics] = useState({
     cpuUsage: 12, memoryUsage: 34, diskUsage: 24, networkIn: 1.2, networkOut: 0.8,
     dbConnections: 15, dbPoolSize: 50, queryAvg: 42, cacheHitRate: 87,
