@@ -353,6 +353,30 @@ const Admin = () => {
         onNavigate={(moduleId) => setActiveModule(moduleId)}
         stats={stats}
       />
+      {/* Destructive Action Confirmation Dialog */}
+      <AlertDialog open={!!confirmAction} onOpenChange={(open) => !open && setConfirmAction(null)}>
+        <AlertDialogContent className="border-destructive/30 bg-card">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-display flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+              Confirm: {confirmAction?.label}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="font-mono text-xs leading-relaxed">
+              {confirmAction?.desc}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="font-mono text-xs">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 font-mono text-xs"
+              onClick={() => { confirmAction?.onConfirm(); setConfirmAction(null); }}
+            >
+              Confirm {confirmAction?.label}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <div className="max-w-[1600px] mx-auto -mt-2">
         {/* ═══ C2 TOP BAR ═══ */}
         <div className="mb-4 rounded-lg border border-border/30 bg-card/20 backdrop-blur-sm overflow-hidden">
