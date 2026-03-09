@@ -98,7 +98,7 @@ const Leaderboard = () => {
             <div className="px-6 py-4 border-b border-border/20 flex items-center gap-2">
               <div className="flex gap-2">
                 <div className="w-3 h-3 rounded-full bg-destructive/80" />
-                <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
+                <div className="w-3 h-3 rounded-full bg-neon-orange/80" />
                 <div className="w-3 h-3 rounded-full bg-primary/80" />
               </div>
               <span className="ml-4 text-xs font-mono text-muted-foreground tracking-wider">leaderboard.exe</span>
