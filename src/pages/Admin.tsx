@@ -343,7 +343,7 @@ const Admin = () => {
                 </div>
 
                 {/* ═══ MODULE CONTENT ═══ */}
-                {activeModule === "overview" && <OverviewDashboard stats={stats} />}
+                {activeModule === "overview" && <OverviewDashboard stats={stats} onAction={handleQuickAction} />}
                 {activeModule === "users" && <UserManagementModule users={users} onPromote={setPromotingUserId} onRefresh={fetchData} />}
                 {activeModule === "config" && <SystemConfigModule />}
                 {activeModule === "network" && <NetworkOpsModule />}
