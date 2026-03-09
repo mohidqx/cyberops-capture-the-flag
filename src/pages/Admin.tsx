@@ -254,6 +254,12 @@ const Admin = () => {
   return (
     <DashboardLayout>
       <AdminSecurityNotifications />
+      <CommandPalette
+        open={commandPaletteOpen}
+        onClose={() => setCommandPaletteOpen(false)}
+        onNavigate={(moduleId) => setActiveModule(moduleId)}
+        stats={stats}
+      />
       <div className="max-w-[1600px] mx-auto -mt-2">
         {/* ═══ C2 TOP BAR ═══ */}
         <div className="mb-4 rounded-lg border border-border/30 bg-card/20 backdrop-blur-sm overflow-hidden">
@@ -269,6 +275,16 @@ const Admin = () => {
               </div>
             </div>
             <div className="hidden md:flex items-center gap-4">
+              {/* Command Palette Trigger */}
+              <button
+                onClick={() => setCommandPaletteOpen(true)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border/30 bg-background/40 hover:bg-background/60 hover:border-primary/30 transition-all text-xs font-mono text-muted-foreground hover:text-foreground"
+              >
+                <Search className="w-3.5 h-3.5" />
+                <span className="text-[10px]">Command Palette</span>
+                <kbd className="text-[9px] px-1.5 py-0.5 rounded border border-border/30 bg-background/60 ml-2">⌘K</kbd>
+              </button>
+              <div className="h-5 w-px bg-border/30" />
               <LiveClock />
               <div className="h-5 w-px bg-border/30" />
               <div className="flex items-center gap-1.5 text-[10px] font-mono">
