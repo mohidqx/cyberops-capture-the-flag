@@ -206,91 +206,35 @@ const SecurityDashboard = () => {
 
   return (
     <div className="space-y-6">
+      {/* World Map Heatmap */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+        <WorldMapHeatmap />
+      </motion.div>
+
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-          <Card className="bg-card/50 border-border/50">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-primary/10">
-                  <Activity className="h-5 w-5 text-primary" />
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        {[
+          { icon: Activity, label: "Submissions (7d)", value: stats.totalSubmissions, color: "text-primary", bg: "bg-primary/10" },
+          { icon: TrendingUp, label: "Success Rate", value: `${stats.totalSubmissions > 0 ? Math.round((stats.correctSubmissions / stats.totalSubmissions) * 100) : 0}%`, color: "text-primary", bg: "bg-primary/10" },
+          { icon: Clock, label: "Rate Limits", value: stats.rateLimitHits, color: "text-neon-orange", bg: "bg-neon-orange/10" },
+          { icon: AlertTriangle, label: "Blocked", value: stats.manipulationBlocks, color: "text-destructive", bg: "bg-destructive/10" },
+          { icon: Ban, label: "Banned", value: stats.bannedUsers, color: "text-destructive", bg: "bg-destructive/10" },
+          { icon: Globe, label: "Countries", value: stats.uniqueCountries, color: "text-secondary", bg: "bg-secondary/10" },
+        ].map((stat, i) => (
+          <motion.div key={stat.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
+            <div className="glass-card rounded-xl p-4">
+              <div className="flex items-center gap-2.5">
+                <div className={`p-2 rounded-lg ${stat.bg}`}>
+                  <stat.icon className={`h-4 w-4 ${stat.color}`} />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Submissions (7d)</p>
-                  <p className="text-2xl font-display font-bold">{stats.totalSubmissions}</p>
+                  <p className="text-[10px] text-muted-foreground font-mono">{stat.label}</p>
+                  <p className={`text-xl font-display font-black ${stat.color}`}>{stat.value}</p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-          <Card className="bg-card/50 border-border/50">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-primary/10">
-                  <TrendingUp className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Success Rate</p>
-                  <p className="text-2xl font-display font-bold">
-                    {stats.totalSubmissions > 0 
-                      ? Math.round((stats.correctSubmissions / stats.totalSubmissions) * 100)
-                      : 0}%
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-          <Card className="bg-card/50 border-border/50">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-yellow-500/10">
-                  <Clock className="h-5 w-5 text-yellow-400" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Rate Limits (7d)</p>
-                  <p className="text-2xl font-display font-bold text-yellow-400">{stats.rateLimitHits}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-          <Card className="bg-card/50 border-border/50">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-destructive/10">
-                  <AlertTriangle className="h-5 w-5 text-destructive" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Blocked (7d)</p>
-                  <p className="text-2xl font-display font-bold text-destructive">{stats.manipulationBlocks}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
-          <Card className="bg-card/50 border-border/50">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-destructive/10">
-                  <Ban className="h-5 w-5 text-destructive" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Banned Users</p>
-                  <p className="text-2xl font-display font-bold text-destructive">{stats.bannedUsers}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+            </div>
+          </motion.div>
+        ))}
       </div>
 
       {/* Charts Row 1 */}
