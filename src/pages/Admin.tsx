@@ -552,13 +552,13 @@ const Admin = () => {
                 </DialogContent>
               </Dialog>
             </div>
-            <div className="rounded-xl border border-border bg-card overflow-hidden">
+            <div className="glass-card rounded-xl overflow-hidden">
               {challenges.length === 0 ? (
                 <div className="p-8 text-center text-muted-foreground font-mono">No challenges yet</div>
               ) : (
-                <div className="divide-y divide-border">
+                <div className="divide-y divide-border/20">
                   {challenges.map((c) => (
-                    <div key={c.id} className="px-6 py-4 flex items-center justify-between">
+                    <div key={c.id} className="px-6 py-4 flex items-center justify-between hover:bg-primary/3 transition-colors">
                       <div>
                         <div className="font-mono font-semibold flex items-center gap-2">
                           {c.title}
