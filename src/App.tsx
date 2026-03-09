@@ -2,9 +2,10 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CompetitionProvider } from "@/contexts/CompetitionContext";
+import { AnimatePresence, motion } from "framer-motion";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import LiveNotifications from "@/components/LiveNotifications";
 import Index from "./pages/Index";
@@ -28,6 +29,54 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+const pageVariants = {
+  initial: { opacity: 0, y: 8 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -8 },
+};
+
+const PageTransition = ({ children }: { children: React.ReactNode }) => (
+  <motion.div
+    variants={pageVariants}
+    initial="initial"
+    animate="animate"
+    exit="exit"
+    transition={{ duration: 0.2, ease: "easeOut" }}
+  >
+    {children}
+  </motion.div>
+);
+
+const AnimatedRoutes = () => {
+  const location = useLocation();
+
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route path="/" element={<PageTransition><Index /></PageTransition>} />
+        <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
+        <Route path="/signup" element={<PageTransition><Signup /></PageTransition>} />
+        <Route path="/dashboard" element={<PageTransition><ProtectedRoute><Dashboard /><LiveNotifications /></ProtectedRoute></PageTransition>} />
+        <Route path="/challenges" element={<PageTransition><ProtectedRoute><Challenges /><LiveNotifications /></ProtectedRoute></PageTransition>} />
+        <Route path="/challenges/:id" element={<PageTransition><ProtectedRoute><ChallengeDetail /><LiveNotifications /></ProtectedRoute></PageTransition>} />
+        <Route path="/categories" element={<PageTransition><ProtectedRoute><Categories /><LiveNotifications /></ProtectedRoute></PageTransition>} />
+        <Route path="/leaderboard" element={<PageTransition><ProtectedRoute><LeaderboardPage /><LiveNotifications /></ProtectedRoute></PageTransition>} />
+        <Route path="/teams" element={<PageTransition><ProtectedRoute><Teams /><LiveNotifications /></ProtectedRoute></PageTransition>} />
+        <Route path="/writeups" element={<PageTransition><ProtectedRoute><Writeups /><LiveNotifications /></ProtectedRoute></PageTransition>} />
+        <Route path="/settings" element={<PageTransition><ProtectedRoute><Settings /></ProtectedRoute></PageTransition>} />
+        <Route path="/profile" element={<PageTransition><ProtectedRoute><Profile /><LiveNotifications /></ProtectedRoute></PageTransition>} />
+        <Route path="/profile/:userId" element={<PageTransition><ProtectedRoute><Profile /><LiveNotifications /></ProtectedRoute></PageTransition>} />
+        <Route path="/admin" element={<PageTransition><ProtectedRoute requireAdmin><Admin /></ProtectedRoute></PageTransition>} />
+        <Route path="/privacy" element={<PageTransition><Privacy /></PageTransition>} />
+        <Route path="/terms" element={<PageTransition><Terms /></PageTransition>} />
+        <Route path="/rules" element={<PageTransition><Rules /></PageTransition>} />
+        <Route path="/conduct" element={<PageTransition><Conduct /></PageTransition>} />
+        <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
+      </Routes>
+    </AnimatePresence>
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
@@ -36,27 +85,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/dashboard" element={<ProtectedRoute><Dashboard /><LiveNotifications /></ProtectedRoute>} />
-              <Route path="/challenges" element={<ProtectedRoute><Challenges /><LiveNotifications /></ProtectedRoute>} />
-              <Route path="/challenges/:id" element={<ProtectedRoute><ChallengeDetail /><LiveNotifications /></ProtectedRoute>} />
-              <Route path="/categories" element={<ProtectedRoute><Categories /><LiveNotifications /></ProtectedRoute>} />
-              <Route path="/leaderboard" element={<ProtectedRoute><LeaderboardPage /><LiveNotifications /></ProtectedRoute>} />
-              <Route path="/teams" element={<ProtectedRoute><Teams /><LiveNotifications /></ProtectedRoute>} />
-              <Route path="/writeups" element={<ProtectedRoute><Writeups /><LiveNotifications /></ProtectedRoute>} />
-              <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-              <Route path="/profile" element={<ProtectedRoute><Profile /><LiveNotifications /></ProtectedRoute>} />
-              <Route path="/profile/:userId" element={<ProtectedRoute><Profile /><LiveNotifications /></ProtectedRoute>} />
-              <Route path="/admin" element={<ProtectedRoute requireAdmin><Admin /></ProtectedRoute>} />
-              <Route path="/privacy" element={<Privacy />} />
-              <Route path="/terms" element={<Terms />} />
-              <Route path="/rules" element={<Rules />} />
-              <Route path="/conduct" element={<Conduct />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <AnimatedRoutes />
           </BrowserRouter>
         </TooltipProvider>
       </CompetitionProvider>
