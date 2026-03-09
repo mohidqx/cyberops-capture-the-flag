@@ -371,10 +371,10 @@ export const SystemConfigModule = ({ onAction }: { onAction?: (action: string) =
           <ConfigToggle label="Analytics" desc="Third-party analytics" checked={config.enableAnalytics} onChange={() => toggle("enableAnalytics")} />
           {config.enableAnalytics && <ConfigInput label="Analytics ID" desc="Tracking code" value={config.analyticsId} onChange={v => setVal("analyticsId", v)} />}
           <div className="grid grid-cols-2 gap-2 pt-2">
-            <ActionBtn icon={RefreshCw} label="Clear Cache" color="neon-orange" />
-            <ActionBtn icon={Database} label="Reset DB" color="destructive" />
-            <ActionBtn icon={Power} label="Restart" color="destructive" />
-            <ActionBtn icon={Terminal} label="Console" color="neon-cyan" />
+            <ActionBtn icon={RefreshCw} label="Clear Cache" color="neon-orange" onClick={() => onAction?.("Purge Cache")} />
+            <ActionBtn icon={Database} label="Reset DB" color="destructive" onClick={() => onAction?.("Reset DB")} />
+            <ActionBtn icon={Power} label="Restart" color="destructive" onClick={() => onAction?.("Restart Services")} />
+            <ActionBtn icon={Terminal} label="Console" color="neon-cyan" onClick={() => onAction?.("SQL Console")} />
           </div>
         </div>
       </C2Panel>

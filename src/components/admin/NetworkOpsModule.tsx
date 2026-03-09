@@ -121,8 +121,8 @@ export const NetworkOpsModule = ({ onAction }: { onAction?: (action: string) => 
               ))}
             </div>
             <div className="grid grid-cols-2 gap-2 pt-2">
-              <ActionBtn icon={Download} label="Export List" color="secondary" />
-              <ActionBtn icon={RefreshCw} label="Import List" color="neon-cyan" />
+              <ActionBtn icon={Download} label="Export List" color="secondary" onClick={() => onAction?.("Export Logs")} />
+              <ActionBtn icon={RefreshCw} label="Import List" color="neon-cyan" onClick={() => onAction?.("Import Data")} />
             </div>
           </div>
         </C2Panel>

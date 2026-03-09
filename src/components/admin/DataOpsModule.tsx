@@ -202,8 +202,8 @@ export const DataOpsModule = ({ onAction }: { onAction?: (action: string) => voi
         <C2Panel title="DATABASE MIGRATIONS" icon={Layers} color="text-neon-purple">
           <div className="p-4 space-y-3">
             <div className="grid grid-cols-2 gap-2">
-              <ActionBtn icon={Layers} label="Run Pending" color="primary" />
-              <ActionBtn icon={RefreshCw} label="Rollback Last" color="neon-orange" />
+              <ActionBtn icon={Layers} label="Run Pending" color="primary" onClick={() => onAction?.("Run Pending")} />
+              <ActionBtn icon={RefreshCw} label="Rollback Last" color="neon-orange" onClick={() => onAction?.("Rollback Last")} />
             </div>
             <SectionLabel label="Migration History" color="neon-purple" />
             {[

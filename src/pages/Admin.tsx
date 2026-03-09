@@ -462,10 +462,10 @@ const Admin = () => {
                 {/* ═══ MODULE CONTENT ═══ */}
                 {activeModule === "overview" && <OverviewDashboard stats={stats} onAction={handleQuickAction} />}
                 {activeModule === "users" && <UserManagementModule users={users} onPromote={setPromotingUserId} onRefresh={fetchData} />}
-                {activeModule === "config" && <SystemConfigModule />}
-                {activeModule === "network" && <NetworkOpsModule />}
-                {activeModule === "data-ops" && <DataOpsModule />}
-                {activeModule === "performance" && <PerformanceModule />}
+                {activeModule === "config" && <SystemConfigModule onAction={handleQuickAction} />}
+                {activeModule === "network" && <NetworkOpsModule onAction={handleQuickAction} />}
+                {activeModule === "data-ops" && <DataOpsModule onAction={handleQuickAction} />}
+                {activeModule === "performance" && <PerformanceModule onAction={handleQuickAction} />}
                 {activeModule === "terminal" && <TerminalModule />}
 
                 {activeModule === "challenges" && (

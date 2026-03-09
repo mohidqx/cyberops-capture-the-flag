@@ -181,14 +181,14 @@ export const PerformanceModule = ({ onAction }: { onAction?: (action: string) =>
       {/* Quick Actions */}
       <C2Panel title="PERFORMANCE ACTIONS" icon={RefreshCw} color="text-primary">
         <div className="p-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
-          <ActionBtn icon={RefreshCw} label="Clear Cache" color="primary" />
-          <ActionBtn icon={Database} label="VACUUM" color="secondary" />
-          <ActionBtn icon={Activity} label="ANALYZE" color="neon-cyan" />
-          <ActionBtn icon={Terminal} label="pg_stat" color="neon-purple" />
-          <ActionBtn icon={Gauge} label="Reindex" color="neon-orange" />
-          <ActionBtn icon={Server} label="Restart Pool" color="destructive" />
-          <ActionBtn icon={Eye} label="Long Queries" color="secondary" />
-          <ActionBtn icon={AlertTriangle} label="Kill Query" color="destructive" />
+          <ActionBtn icon={RefreshCw} label="Clear Cache" color="primary" onClick={() => onAction?.("Purge Cache")} />
+          <ActionBtn icon={Database} label="VACUUM" color="secondary" onClick={() => onAction?.("VACUUM")} />
+          <ActionBtn icon={Activity} label="ANALYZE" color="neon-cyan" onClick={() => onAction?.("ANALYZE")} />
+          <ActionBtn icon={Terminal} label="pg_stat" color="neon-purple" onClick={() => onAction?.("SQL Console")} />
+          <ActionBtn icon={Gauge} label="Reindex" color="neon-orange" onClick={() => onAction?.("Reindex")} />
+          <ActionBtn icon={Server} label="Restart Pool" color="destructive" onClick={() => onAction?.("Restart Services")} />
+          <ActionBtn icon={Eye} label="Long Queries" color="secondary" onClick={() => onAction?.("Long Queries")} />
+          <ActionBtn icon={AlertTriangle} label="Kill Query" color="destructive" onClick={() => onAction?.("Kill Query")} />
         </div>
       </C2Panel>
     </div>
