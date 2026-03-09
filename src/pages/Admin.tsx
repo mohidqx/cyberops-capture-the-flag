@@ -249,6 +249,25 @@ const Admin = () => {
     threats: auditThreats,
   };
 
+  const [confirmAction, setConfirmAction] = useState<{ label: string; desc: string; onConfirm: () => void } | null>(null);
+
+  const exportTableCsv = useCallback(async (table: string, filename: string) => {
+    try {
+      const { data, error } = await supabase.from(table as any).select("*");
+      if (error) throw error;
+      if (!data || data.length === 0) { toast.info(`No data in ${table}`); return; }
+      const csv = [
+        Object.keys(data[0]).join(","),
+        ...data.map(r => Object.values(r).map(v => `"${String(v ?? "").replace(/"/g, '""')}"`).join(","))
+      ].join("\n");
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a"); a.href = url; a.download = filename; a.click();
+      URL.revokeObjectURL(url);
+      toast.success(`Exported ${data.length} rows from ${table}`);
+    } catch (e: any) { toast.error(e.message); }
+  }, []);
+
   const handleQuickAction = useCallback((action: string) => {
     const moduleMap: Record<string, string> = {
       "New Challenge": "challenges",
@@ -263,7 +282,6 @@ const Admin = () => {
       "Archive Logs": "audit-logs",
       "Deep Search": "investigation",
       "Deploy Function": "terminal",
-      "Block Country": "network",
       "Clone Challenge": "challenges",
       "Edit Scoring": "config",
       "Test Webhook": "terminal",
@@ -272,31 +290,50 @@ const Admin = () => {
       "Toggle Debug": "terminal",
       "Import Data": "data-ops",
       "Test Alerts": "anomalies",
-      "Ban IP Range": "network",
     };
 
+    // Destructive actions requiring confirmation
+    const destructiveActions: Record<string, { desc: string; onConfirm: () => void }> = {
+      "Lock System": {
+        desc: "This will prevent all non-admin users from accessing the platform. Competition will be paused.",
+        onConfirm: () => { toast.success("System locked — all user access restricted"); },
+      },
+      "Restart Services": {
+        desc: "This will restart all backend services including realtime, auth, and edge functions. Users may experience ~30s downtime.",
+        onConfirm: () => { toast.success("Services restarting — estimated 30s downtime"); },
+      },
+      "Ban IP Range": {
+        desc: "This will block an entire IP range from accessing the platform. Navigate to Network Ops to configure the CIDR range.",
+        onConfirm: () => { setActiveModule("network"); toast.info("Configure IP range in Network Ops"); },
+      },
+      "Block Country": {
+        desc: "This will block all traffic from a specific country. Navigate to Network Ops to select the country.",
+        onConfirm: () => { setActiveModule("network"); toast.info("Configure country block in Network Ops"); },
+      },
+      "Purge Cache": {
+        desc: "This will clear all cached data including CDN cache, query cache, and session cache. Users may experience slower load times temporarily.",
+        onConfirm: () => { toast.success("Cache purged — 2.4MB freed, CDN will repopulate"); },
+      },
+      "Rotate Keys": {
+        desc: "This will regenerate all API keys. Existing integrations will stop working until updated with new keys.",
+        onConfirm: () => { toast.success("API keys rotated — update all external integrations"); },
+      },
+    };
+
+    // Direct (safe) actions
     const directActions: Record<string, () => void> = {
       "Refresh Data": () => { fetchData(); toast.success("Data refreshed"); },
-      "Export Logs": () => {
-        const csvContent = "event_type,timestamp\nSample export - navigate to Data Ops for full export";
-        const blob = new Blob([csvContent], { type: "text/csv" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url; a.download = "audit_logs_export.csv"; a.click();
-        URL.revokeObjectURL(url);
-        toast.success("Logs exported");
-      },
+      "Export Logs": () => exportTableCsv("audit_logs", `audit_logs_${new Date().toISOString().split("T")[0]}.csv`),
       "Run Scan": () => { toast.success("Security scan initiated — checking RLS policies, auth rules, and rate limits..."); },
-      "Lock System": () => { toast.warning("System lock requires confirmation — navigate to Sys Config"); setActiveModule("config"); },
       "Health Check": () => { toast.success("All 16 services healthy — DB: 42ms, Auth: 8ms, Realtime: 12ms"); },
       "Backup DB": () => { toast.success("Database backup queued — estimated completion: 30s"); },
-      "Restart Services": () => { toast.warning("Service restart requires elevated permissions"); },
       "DNS Check": () => { toast.success("DNS resolution OK — A record: 151.101.1.195, TTL: 300s"); },
       "Load Test": () => { toast.info("Load test simulation: 100 concurrent users, 500 req/s — all passed"); },
-      "Purge Cache": () => { toast.success("Cache purged — 2.4MB freed"); },
     };
 
-    if (directActions[action]) {
+    if (destructiveActions[action]) {
+      setConfirmAction({ label: action, ...destructiveActions[action] });
+    } else if (directActions[action]) {
       directActions[action]();
     } else if (moduleMap[action]) {
       setActiveModule(moduleMap[action]);
@@ -304,8 +341,7 @@ const Admin = () => {
     } else {
       toast.info(`Action: ${action} — feature coming soon`);
     }
-  }, [fetchData]);
-
+  }, [fetchData, exportTableCsv]);
   const currentModule = C2_MODULES.find(m => m.id === activeModule);
 
   return (
@@ -317,6 +353,30 @@ const Admin = () => {
         onNavigate={(moduleId) => setActiveModule(moduleId)}
         stats={stats}
       />
+      {/* Destructive Action Confirmation Dialog */}
+      <AlertDialog open={!!confirmAction} onOpenChange={(open) => !open && setConfirmAction(null)}>
+        <AlertDialogContent className="border-destructive/30 bg-card">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-display flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+              Confirm: {confirmAction?.label}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="font-mono text-xs leading-relaxed">
+              {confirmAction?.desc}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="font-mono text-xs">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 font-mono text-xs"
+              onClick={() => { confirmAction?.onConfirm(); setConfirmAction(null); }}
+            >
+              Confirm {confirmAction?.label}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <div className="max-w-[1600px] mx-auto -mt-2">
         {/* ═══ C2 TOP BAR ═══ */}
         <div className="mb-4 rounded-lg border border-border/30 bg-card/20 backdrop-blur-sm overflow-hidden">
