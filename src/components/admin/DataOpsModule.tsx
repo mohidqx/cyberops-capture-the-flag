@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
-export const DataOpsModule = () => {
+export const DataOpsModule = ({ onAction }: { onAction?: (action: string) => void }) => {
   const [activeTab, setActiveTab] = useState("export");
   const [exporting, setExporting] = useState(false);
 
