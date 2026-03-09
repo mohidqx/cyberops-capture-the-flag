@@ -42,6 +42,7 @@ import { DataOpsModule } from "@/components/admin/DataOpsModule";
 import { PerformanceModule } from "@/components/admin/PerformanceModule";
 import { UserManagementModule } from "@/components/admin/UserManagementModule";
 import { TerminalModule } from "@/components/admin/TerminalModule";
+import { CommandPalette } from "@/components/admin/CommandPalette";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface Writeup { id: string; title: string; content: string; is_approved: boolean; created_at: string; challenges: { title: string } | null; profiles: { username: string } | null; }
@@ -89,11 +90,43 @@ const Admin = () => {
   const [editingSponsor, setEditingSponsor] = useState<Sponsor | null>(null);
   const [promotingUserId, setPromotingUserId] = useState<string | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [sessions, setSessions] = useState(0);
   const [visitors, setVisitors] = useState(0);
   const [teams, setTeams] = useState(0);
   const [firstBloods, setFirstBloods] = useState(0);
   const [auditThreats, setAuditThreats] = useState(0);
+
+  // ─── Keyboard Shortcuts ─────────────────────────────────────────────────
+  useEffect(() => {
+    const moduleKeys = ["overview", "challenges", "users", "announcements", "sponsors", "writeups", "competition", "contacts", "terminal"];
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl+K: Command Palette
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setCommandPaletteOpen(prev => !prev);
+        return;
+      }
+      // Escape: collapse sidebar or close palette
+      if (e.key === "Escape") {
+        if (commandPaletteOpen) {
+          setCommandPaletteOpen(false);
+        } else {
+          setSidebarCollapsed(prev => !prev);
+        }
+        return;
+      }
+      // Ctrl+1-9: switch modules
+      if ((e.metaKey || e.ctrlKey) && e.key >= "1" && e.key <= "9") {
+        e.preventDefault();
+        const idx = parseInt(e.key) - 1;
+        if (idx < moduleKeys.length) setActiveModule(moduleKeys[idx]);
+        return;
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [commandPaletteOpen]);
 
   const [newChallenge, setNewChallenge] = useState({
     title: "", description: "", category: "web", difficulty: "easy", points: 100, flag: "", hints: "", hint_costs: "", files: [] as string[],
@@ -221,6 +254,12 @@ const Admin = () => {
   return (
     <DashboardLayout>
       <AdminSecurityNotifications />
+      <CommandPalette
+        open={commandPaletteOpen}
+        onClose={() => setCommandPaletteOpen(false)}
+        onNavigate={(moduleId) => setActiveModule(moduleId)}
+        stats={stats}
+      />
       <div className="max-w-[1600px] mx-auto -mt-2">
         {/* ═══ C2 TOP BAR ═══ */}
         <div className="mb-4 rounded-lg border border-border/30 bg-card/20 backdrop-blur-sm overflow-hidden">
@@ -236,6 +275,16 @@ const Admin = () => {
               </div>
             </div>
             <div className="hidden md:flex items-center gap-4">
+              {/* Command Palette Trigger */}
+              <button
+                onClick={() => setCommandPaletteOpen(true)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border/30 bg-background/40 hover:bg-background/60 hover:border-primary/30 transition-all text-xs font-mono text-muted-foreground hover:text-foreground"
+              >
+                <Search className="w-3.5 h-3.5" />
+                <span className="text-[10px]">Command Palette</span>
+                <kbd className="text-[9px] px-1.5 py-0.5 rounded border border-border/30 bg-background/60 ml-2">⌘K</kbd>
+              </button>
+              <div className="h-5 w-px bg-border/30" />
               <LiveClock />
               <div className="h-5 w-px bg-border/30" />
               <div className="flex items-center gap-1.5 text-[10px] font-mono">
