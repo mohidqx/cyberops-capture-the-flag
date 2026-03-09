@@ -488,7 +488,7 @@ const SecurityDashboard = () => {
                             }
                           </TableCell>
                           <TableCell className="font-mono text-muted-foreground py-2">
-                            {session.ip_address || "—"}
+                            {session.ip_address ? String(session.ip_address) : "—"}
                           </TableCell>
                           <TableCell className="text-muted-foreground py-2">
                             {format(new Date(session.created_at), "MMM d, HH:mm")}
