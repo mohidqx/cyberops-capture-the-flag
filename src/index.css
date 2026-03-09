@@ -369,6 +369,21 @@
     animation: gradient-rotate 4s ease infinite;
   }
 
+  /* C2 Panel */
+  .c2-panel {
+    position: relative;
+    overflow: hidden;
+  }
+  .c2-panel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, hsl(var(--neon-green) / 0.3), transparent);
+  }
+
   /* Section divider */
   .section-divider {
     position: relative;
