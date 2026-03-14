@@ -7,7 +7,7 @@ import {
   Terminal, Cpu, Wifi, Zap, Radio, Database, Server, Lock,
   RefreshCw, Maximize2, Minimize2, Radar, ChevronRight, Shield,
   Search, Globe, Bug, Skull, Layers, Download, Upload, Settings,
-  Gauge, Network, HardDrive, Power, Hash, Bell, Palette, Ban, Code
+  Gauge, Network, HardDrive, Power, Hash, Bell, Palette, Ban, Code, Key
 } from "lucide-react";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import { Button } from "@/components/ui/button";
