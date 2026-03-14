@@ -124,7 +124,7 @@ export const UserManagementModule = ({ users, onPromote, onRefresh }: UserManage
     if (!roleChangeUser) return;
     const { data, error } = await supabase.rpc("admin_set_user_role", {
       _target_username: roleChangeUser.username,
-      _new_role: selectedRole,
+      _new_role: selectedRole as "admin" | "moderator" | "user",
     });
     if (error) { toast.error(error.message); return; }
     const result = data as any;
