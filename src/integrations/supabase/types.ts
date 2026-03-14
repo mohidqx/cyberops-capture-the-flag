@@ -363,6 +363,30 @@ export type Database = {
           },
         ]
       }
+      site_settings: {
+        Row: {
+          id: string
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          id?: string
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Update: {
+          id?: string
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
       sponsors: {
         Row: {
           created_at: string
@@ -919,8 +943,20 @@ export type Database = {
         Args: { _reason?: string; _username: string }
         Returns: Json
       }
+      admin_delete_user: { Args: { _target_username: string }; Returns: Json }
       admin_reset_user_scores: { Args: { _username: string }; Returns: Json }
+      admin_set_user_role: {
+        Args: {
+          _new_role: Database["public"]["Enums"]["app_role"]
+          _target_username: string
+        }
+        Returns: Json
+      }
       admin_unban_user: { Args: { _username: string }; Returns: Json }
+      admin_update_user_profile: {
+        Args: { _target_username: string; _updates: Json }
+        Returns: Json
+      }
       detect_login_anomalies: {
         Args: { _user_id: string }
         Returns: {
