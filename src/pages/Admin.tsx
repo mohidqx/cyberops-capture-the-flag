@@ -44,6 +44,7 @@ import { UserManagementModule } from "@/components/admin/UserManagementModule";
 import { TerminalModule } from "@/components/admin/TerminalModule";
 import { CommandPalette } from "@/components/admin/CommandPalette";
 import { SiteSettingsModule } from "@/components/admin/SiteSettingsModule";
+import { ContentManagementModule } from "@/components/admin/ContentManagementModule";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface Writeup { id: string; title: string; content: string; is_approved: boolean; created_at: string; challenges: { title: string } | null; profiles: { username: string } | null; }
@@ -60,6 +61,7 @@ const C2_MODULES = [
   { id: "site-settings", label: "SITE CTRL", icon: Settings, color: "text-neon-purple", group: "command" },
   { id: "announcements", label: "BROADCAST", icon: Radio, color: "text-neon-orange", group: "command" },
   { id: "sponsors", label: "ASSETS", icon: Award, color: "text-neon-cyan", group: "command" },
+  { id: "content", label: "CMS", icon: FileText, color: "text-neon-cyan", group: "command" },
   { id: "writeups", label: "INTEL", icon: FileText, color: "text-neon-purple", group: "intel" },
   { id: "competition", label: "OPERATIONS", icon: Trophy, color: "text-primary", group: "intel" },
   { id: "contacts", label: "COMMS", icon: Mail, color: "text-secondary", group: "intel" },
@@ -470,6 +472,7 @@ const Admin = () => {
                 {activeModule === "performance" && <PerformanceModule onAction={handleQuickAction} />}
                 {activeModule === "terminal" && <TerminalModule />}
                 {activeModule === "site-settings" && <SiteSettingsModule />}
+                {activeModule === "content" && <ContentManagementModule />}
 
                 {activeModule === "challenges" && (
                   <C2Panel title="CHALLENGE TARGETS" icon={Target} color="text-primary" actions={
