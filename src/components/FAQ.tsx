@@ -6,8 +6,9 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { usePageContent, FaqContent } from "@/hooks/usePageContent";
 
-const faqs = [
+const defaultFaqs = [
   { question: "What is a CTF competition?", answer: "CTF (Capture The Flag) is a cybersecurity competition where participants solve security-related challenges to find hidden 'flags' - secret strings that prove you've completed the challenge. It's a hands-on way to learn and practice hacking skills in a legal environment." },
   { question: "Do I need prior experience to participate?", answer: "Not at all! We offer challenges for all skill levels, from beginner-friendly puzzles to advanced exploits. Our resources section has learning materials to help you get started, and our community is welcoming to newcomers." },
   { question: "How do I submit a flag?", answer: "Once you solve a challenge, you'll find a flag in the format CTF{...}. Navigate to the challenge page, enter the exact flag string in the submission box, and click submit. Points are awarded instantly for correct submissions." },
@@ -17,6 +18,13 @@ const faqs = [
   { question: "What tools do I need?", answer: "Basic challenges can be solved with just a web browser and text editor. For more advanced challenges, you might need tools like Burp Suite, Ghidra, pwntools, or Wireshark. We recommend a Linux environment (like Kali or Parrot OS) for the best experience." },
   { question: "Is there a time limit for challenges?", answer: "During live competitions, challenges are available until the event ends. After competition mode ends, challenges may remain available for practice. Check the countdown timer and announcements for specific event timings." },
 ];
+
+const FAQ = () => {
+  const { content } = usePageContent("page_faq");
+  const faqContent = content as FaqContent | null;
+  const faqs = faqContent?.items?.length ? faqContent.items : defaultFaqs;
+  const title = faqContent?.title || "Frequently Asked Questions";
+  const subtitle = faqContent?.subtitle || "Everything you need to know about participating in CyberOps CTF competitions";
 
 const FAQ = () => {
   return (
