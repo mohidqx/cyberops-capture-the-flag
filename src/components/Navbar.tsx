@@ -8,6 +8,8 @@ import { useSiteSettings } from "@/hooks/useSiteSettings";
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const { settings } = useSiteSettings();
+  const toggles = settings.feature_toggles;
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
