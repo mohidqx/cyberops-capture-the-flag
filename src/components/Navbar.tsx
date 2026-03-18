@@ -80,12 +80,14 @@ const Navbar = () => {
                 Login
               </Button>
             </a>
-            <a href="/signup">
-              <Button variant="hero" size="sm" className="relative overflow-hidden group">
-                <span className="relative z-10">Join CTF</span>
-                <span className="absolute inset-0 bg-gradient-to-r from-primary to-neon-cyan opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              </Button>
-            </a>
+            {toggles.registration && (
+              <a href="/signup">
+                <Button variant="hero" size="sm" className="relative overflow-hidden group">
+                  <span className="relative z-10">Join CTF</span>
+                  <span className="absolute inset-0 bg-gradient-to-r from-primary to-neon-cyan opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                </Button>
+              </a>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
