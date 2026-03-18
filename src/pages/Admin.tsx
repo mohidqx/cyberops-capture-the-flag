@@ -472,6 +472,7 @@ const Admin = () => {
                 {activeModule === "performance" && <PerformanceModule onAction={handleQuickAction} />}
                 {activeModule === "terminal" && <TerminalModule />}
                 {activeModule === "site-settings" && <SiteSettingsModule />}
+                {activeModule === "content" && <ContentManagementModule />}
 
                 {activeModule === "challenges" && (
                   <C2Panel title="CHALLENGE TARGETS" icon={Target} color="text-primary" actions={
