@@ -53,8 +53,7 @@ export const SiteSettingsModule = () => {
     setSaving(true);
     const { error } = await supabase
       .from("site_settings")
-      .update({ value, updated_at: new Date().toISOString() })
-      .eq("key", key);
+      .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: "key" });
     if (error) { toast.error(error.message); }
     else { toast.success(`${key.replace("_", " ")} updated`); }
     setSaving(false);
