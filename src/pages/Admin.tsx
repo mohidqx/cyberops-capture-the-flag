@@ -347,6 +347,9 @@ const Admin = () => {
     }
   }, [fetchData, exportTableCsv]);
   const currentModule = C2_MODULES.find(m => m.id === activeModule);
+  const pendingOps = stats.unresolvedContacts + stats.pendingWriteups;
+  const threatLevel = stats.threats > 15 ? "CRITICAL" : stats.threats > 5 ? "HIGH" : stats.threats > 0 ? "ELEVATED" : "LOW";
+  const threatLevelColor = threatLevel === "CRITICAL" ? "text-destructive" : threatLevel === "HIGH" ? "text-neon-orange" : threatLevel === "ELEVATED" ? "text-secondary" : "text-primary";
 
   return (
     <DashboardLayout>
@@ -383,8 +386,10 @@ const Admin = () => {
 
       <div className="max-w-[1600px] mx-auto -mt-2">
         {/* ═══ C2 TOP BAR ═══ */}
-        <div className="mb-4 rounded-lg border border-border/30 bg-card/20 backdrop-blur-sm overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-border/20">
+        <div className="relative mb-4 rounded-lg border border-border/30 bg-card/20 backdrop-blur-sm overflow-hidden shadow-[0_0_0_1px_hsl(var(--border)/0.2),0_20px_60px_-35px_hsl(var(--primary)/0.5)]">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,hsl(var(--primary)/0.14),transparent_45%),radial-gradient(circle_at_bottom_left,hsl(var(--secondary)/0.12),transparent_45%)]" />
+
+          <div className="relative z-10 flex items-center justify-between px-4 py-3 border-b border-border/20">
             <div className="flex items-center gap-3">
               <motion.div animate={{ rotate: [0, 360] }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }} className="relative">
                 <Radar className="h-6 w-6 text-primary" />
@@ -413,9 +418,12 @@ const Admin = () => {
                 <span className="text-primary">SECURE</span>
               </div>
               <Badge variant="outline" className="text-[10px] font-mono border-secondary/30 text-secondary">{profile?.username || "ADMIN"}</Badge>
+                <div className="h-5 w-px bg-border/30" />
+                <StatusPill icon={Skull} label="THREAT" value={threatLevel} color={threatLevelColor} pulse={threatLevel !== "LOW"} />
+                <StatusPill icon={Bell} label="PENDING" value={String(pendingOps)} color={pendingOps > 0 ? "text-neon-orange" : "text-primary"} pulse={pendingOps > 0} />
             </div>
           </div>
-          <div className="px-4 py-2 overflow-x-auto">
+          <div className="relative z-10 px-4 py-2 overflow-x-auto">
             <SystemStatusBar stats={stats} />
           </div>
         </div>
@@ -456,11 +464,17 @@ const Admin = () => {
           <div className="flex-1 min-w-0">
             <AnimatePresence mode="wait">
               <motion.div key={activeModule} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
-                <div className="flex items-center gap-2 mb-3">
-                  {currentModule && <currentModule.icon className={`w-4 h-4 ${currentModule.color}`} />}
-                  <span className="font-mono text-xs uppercase tracking-[0.15em] text-muted-foreground">{currentModule?.label || "UNKNOWN"}</span>
-                  <ChevronRight className="w-3 h-3 text-border" />
-                  <span className="font-mono text-xs text-muted-foreground/50">ACTIVE</span>
+                <div className="mb-3 rounded-lg border border-border/20 bg-background/35 backdrop-blur-sm px-3 py-2 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 min-w-0">
+                    {currentModule && <currentModule.icon className={`w-4 h-4 shrink-0 ${currentModule.color}`} />}
+                    <span className="font-mono text-xs uppercase tracking-[0.15em] text-muted-foreground truncate">{currentModule?.label || "UNKNOWN"}</span>
+                    <ChevronRight className="w-3 h-3 text-border shrink-0" />
+                    <span className="font-mono text-xs text-muted-foreground/50 shrink-0">ACTIVE</span>
+                  </div>
+                  <div className="hidden sm:flex items-center gap-2 shrink-0">
+                    <Badge variant="outline" className="text-[10px] font-mono border-border/40 text-muted-foreground">{currentModule?.group?.toUpperCase() || "MODULE"}</Badge>
+                    <Badge variant="outline" className="text-[10px] font-mono border-destructive/30 text-destructive">{stats.threats} THREATS</Badge>
+                  </div>
                 </div>
 
                 {/* ═══ MODULE CONTENT ═══ */}
