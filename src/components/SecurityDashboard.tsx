@@ -4,7 +4,7 @@ import { Shield, AlertTriangle, TrendingUp, Clock, Activity, Users, Ban, Globe, 
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, LineChart, Line } from "recharts";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, BarChart, Bar, PieChart, Pie, Cell, LineChart, Line } from "recharts";
 import { format, subDays, startOfDay, eachDayOfInterval, eachHourOfInterval, subHours } from "date-fns";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -417,7 +417,7 @@ const SecurityDashboard = () => {
             <CardContent>
               <div className="h-[250px] w-full flex items-center justify-center">
                 {countryDistribution.length > 0 ? (
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ChartContainer config={chartConfig} className="h-[250px] w-full">
                     <PieChart>
                       <Pie
                         data={countryDistribution}
@@ -436,7 +436,7 @@ const SecurityDashboard = () => {
                       </Pie>
                       <ChartTooltip content={<ChartTooltipContent />} />
                     </PieChart>
-                  </ResponsiveContainer>
+                  </ChartContainer>
                 ) : (
                   <div className="text-center">
                     <Globe className="h-12 w-12 text-muted-foreground/30 mx-auto mb-2" />
