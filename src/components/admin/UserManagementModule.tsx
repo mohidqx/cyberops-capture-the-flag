@@ -22,6 +22,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { c2Toast, playSound } from "@/lib/adminSounds";
 
 interface UserManagementProps {
   users: any[];
@@ -65,7 +66,7 @@ export const UserManagementModule = ({ users, onPromote, onRefresh }: UserManage
   const banUser = async (username: string, reason: string) => {
     const { error } = await supabase.rpc("admin_ban_user", { _username: username, _reason: reason || "Banned by admin" });
     if (error) { toast.error(error.message); return; }
-    toast.success(`${username} banned`);
+    c2Toast.alert(`${username} banned`);
     setBanningUser(null);
     setBanReason("");
     onRefresh();
@@ -74,13 +75,13 @@ export const UserManagementModule = ({ users, onPromote, onRefresh }: UserManage
   const unbanUser = async (username: string) => {
     const { error } = await supabase.rpc("admin_unban_user", { _username: username });
     if (error) { toast.error(error.message); return; }
-    toast.success(`${username} unbanned`); onRefresh();
+    c2Toast.success(`${username} unbanned`); onRefresh();
   };
 
   const resetScores = async (username: string) => {
     const { error } = await supabase.rpc("admin_reset_user_scores", { _username: username });
     if (error) { toast.error(error.message); return; }
-    toast.success(`Scores reset for ${username}`); onRefresh();
+    c2Toast.success(`Scores reset for ${username}`); onRefresh();
   };
 
   const openEditUser = (user: any) => {
@@ -114,8 +115,8 @@ export const UserManagementModule = ({ users, onPromote, onRefresh }: UserManage
     });
     if (error) { toast.error(error.message); return; }
     const result = data as any;
-    if (!result?.success) { toast.error(result?.message || "Failed"); return; }
-    toast.success(`Profile updated for ${editingUser.username}`);
+    if (!result?.success) { c2Toast.error(result?.message || "Failed"); return; }
+    c2Toast.success(`Profile updated for ${editingUser.username}`);
     setEditingUser(null);
     onRefresh();
   };
@@ -128,8 +129,8 @@ export const UserManagementModule = ({ users, onPromote, onRefresh }: UserManage
     });
     if (error) { toast.error(error.message); return; }
     const result = data as any;
-    if (!result?.success) { toast.error(result?.message || "Failed"); return; }
-    toast.success(`${roleChangeUser.username} role changed to ${selectedRole}`);
+    if (!result?.success) { c2Toast.error(result?.message || "Failed"); return; }
+    c2Toast.deploy(`${roleChangeUser.username} role changed to ${selectedRole}`);
     setRoleChangeUser(null);
     onRefresh();
   };
@@ -141,8 +142,8 @@ export const UserManagementModule = ({ users, onPromote, onRefresh }: UserManage
     });
     if (error) { toast.error(error.message); return; }
     const result = data as any;
-    if (!result?.success) { toast.error(result?.message || "Failed"); return; }
-    toast.success(`User ${deleteUser.username} deleted`);
+    if (!result?.success) { c2Toast.error(result?.message || "Failed"); return; }
+    c2Toast.alert(`User ${deleteUser.username} deleted`);
     setDeleteUser(null);
     onRefresh();
   };

@@ -5,6 +5,7 @@ import {
   Maximize2, Minimize2, ChevronRight, Radar
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { playSound } from "@/lib/adminSounds";
 
 // ─── Live Clock ─────────────────────────────────────────────────────────────
 export const LiveClock = () => {
@@ -84,7 +85,7 @@ export const C2NavItem = ({ mod, active, collapsed, onClick, badge, badgeColor =
   mod: { id: string; label: string; icon: any; color: string; group: string }; active: boolean; collapsed: boolean; onClick: () => void; badge?: number; badgeColor?: string;
 }) => (
   <button
-    onClick={onClick}
+    onClick={() => { playSound("click"); onClick(); }}
     className={`w-full flex items-center gap-2 rounded-md transition-all duration-200 relative ${
       collapsed ? "p-2 justify-center" : "px-2.5 py-2"
     } ${
