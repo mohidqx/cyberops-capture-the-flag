@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Shield, Terminal } from "lucide-react";
+import { Menu, X, Terminal } from "lucide-react";
+import cyberopsLogo from "@/assets/cyberops-logo.png";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
@@ -48,7 +49,7 @@ const Navbar = () => {
           {/* Logo */}
           <a href="#" className="flex items-center gap-2.5 group">
             <div className="relative">
-              <Shield className="h-8 w-8 text-primary transition-all duration-300 group-hover:drop-shadow-[0_0_8px_hsl(var(--neon-green)/0.8)]" />
+              <img src={cyberopsLogo} alt="CyberOps Logo" className="h-9 w-9 rounded-full ring-2 ring-primary/30 group-hover:ring-primary/60 transition-all duration-300 group-hover:drop-shadow-[0_0_8px_hsl(var(--neon-green)/0.8)]" />
               <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300" />
             </div>
             <span className="font-display text-xl font-bold tracking-wider text-gradient">
