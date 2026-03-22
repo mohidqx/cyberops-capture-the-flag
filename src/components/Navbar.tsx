@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Shield, Terminal } from "lucide-react";
+import { Menu, X, Terminal } from "lucide-react";
+import cyberopsLogo from "@/assets/cyberops-logo.png";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
