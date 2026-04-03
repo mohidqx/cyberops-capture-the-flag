@@ -23,7 +23,7 @@ const rowVariants = {
   hidden: { opacity: 0, x: 40, scale: 0.95 },
   visible: (i: number) => ({
     opacity: 1, x: 0, scale: 1,
-    transition: { delay: i * 0.12, duration: 0.6, ease: [0.22, 1, 0.36, 1] }
+    transition: { delay: i * 0.12, duration: 0.6, ease: [0.22, 1, 0.36, 1] as const }
   }),
 };
 
