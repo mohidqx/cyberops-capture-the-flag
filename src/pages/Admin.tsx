@@ -388,96 +388,107 @@ const Admin = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="max-w-[1600px] mx-auto -mt-2">
-        {/* ═══ C2 TOP BAR ═══ */}
-        <div className="relative mb-4 rounded-lg border border-border/30 bg-card/20 backdrop-blur-sm overflow-hidden shadow-[0_0_0_1px_hsl(var(--border)/0.2),0_20px_60px_-35px_hsl(var(--primary)/0.5)]">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,hsl(var(--primary)/0.14),transparent_45%),radial-gradient(circle_at_bottom_left,hsl(var(--secondary)/0.12),transparent_45%)]" />
-
-          <div className="relative z-10 flex items-center justify-between px-4 py-3 border-b border-border/20">
-            <div className="flex items-center gap-3">
-              <motion.div animate={{ rotate: [0, 360] }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }} className="relative">
-                <Radar className="h-6 w-6 text-primary" />
-                <div className="absolute inset-0 animate-ping"><Radar className="h-6 w-6 text-primary/20" /></div>
+      <div className="max-w-[1600px] mx-auto -mt-2 space-y-4">
+        {/* ═══ C2 TOP BAR — Sleek & Minimal ═══ */}
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
+          className="relative rounded-xl border border-border/20 bg-card/30 backdrop-blur-md overflow-hidden shadow-[0_8px_32px_-12px_hsl(var(--primary)/0.15)]">
+          {/* Subtle gradient bg */}
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,hsl(var(--primary)/0.08),transparent)]" />
+          
+          <div className="relative z-10 flex items-center justify-between px-5 py-3">
+            <div className="flex items-center gap-4">
+              <motion.div animate={{ rotate: [0, 360] }} transition={{ duration: 25, repeat: Infinity, ease: "linear" }} className="relative">
+                <Radar className="h-7 w-7 text-primary drop-shadow-[0_0_8px_hsl(var(--primary)/0.5)]" />
               </motion.div>
               <div>
                 <h1 className="font-display text-lg font-black text-foreground tracking-tight leading-none">C2 COMMAND CENTER</h1>
-                <p className="text-[10px] font-mono text-muted-foreground tracking-[0.2em] uppercase">CyberOps Tactical Operations Console v4.0 • {C2_MODULES.length} Modules Active</p>
+                <p className="text-[10px] font-mono text-muted-foreground/60 tracking-[0.15em] uppercase mt-0.5">{C2_MODULES.length} Modules Active • v4.0</p>
               </div>
             </div>
-            <div className="hidden md:flex items-center gap-4">
-              {/* Command Palette Trigger */}
-              <button
-                onClick={() => setCommandPaletteOpen(true)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border/30 bg-background/40 hover:bg-background/60 hover:border-primary/30 transition-all text-xs font-mono text-muted-foreground hover:text-foreground"
-              >
+            <div className="hidden md:flex items-center gap-3">
+              <button onClick={() => setCommandPaletteOpen(true)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border/20 bg-background/30 hover:bg-background/50 hover:border-primary/20 transition-all text-xs font-mono text-muted-foreground hover:text-foreground">
                 <Search className="w-3.5 h-3.5" />
-                <span className="text-[10px]">Command Palette</span>
-                <kbd className="text-[9px] px-1.5 py-0.5 rounded border border-border/30 bg-background/60 ml-2">⌘K</kbd>
+                <span className="text-[10px] hidden lg:inline">Search</span>
+                <kbd className="text-[9px] px-1.5 py-0.5 rounded border border-border/20 bg-background/50 ml-1">⌘K</kbd>
               </button>
-              <div className="h-5 w-px bg-border/30" />
+              <div className="h-4 w-px bg-border/20" />
               <LiveClock />
-              <div className="h-5 w-px bg-border/30" />
-              <div className="flex items-center gap-1.5 text-[10px] font-mono">
+              <div className="h-4 w-px bg-border/20" />
+              <div className="flex items-center gap-1.5">
                 <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                <span className="text-primary">SECURE</span>
+                <span className="text-[10px] font-mono text-primary">ONLINE</span>
               </div>
-              <Badge variant="outline" className="text-[10px] font-mono border-secondary/30 text-secondary">{profile?.username || "ADMIN"}</Badge>
-                <div className="h-5 w-px bg-border/30" />
-                <StatusPill icon={Skull} label="THREAT" value={threatLevel} color={threatLevelColor} pulse={threatLevel !== "LOW"} />
-                <StatusPill icon={Bell} label="PENDING" value={String(pendingOps)} color={pendingOps > 0 ? "text-neon-orange" : "text-primary"} pulse={pendingOps > 0} />
+              <Badge variant="outline" className="text-[10px] font-mono border-border/20 text-muted-foreground">{profile?.username || "ADMIN"}</Badge>
+              <StatusPill icon={Skull} label="THREAT" value={threatLevel} color={threatLevelColor} pulse={threatLevel !== "LOW"} />
             </div>
           </div>
-          <div className="relative z-10 px-4 py-2 overflow-x-auto">
+          {/* Minimal status bar */}
+          <div className="relative z-10 px-5 py-1.5 border-t border-border/10 overflow-x-auto">
             <SystemStatusBar stats={stats} />
           </div>
-        </div>
+        </motion.div>
 
         {/* ═══ MAIN LAYOUT ═══ */}
-        <div className="flex gap-3">
+        <div className="flex gap-4">
           {/* ─── Sidebar ─── */}
-          <div className={`shrink-0 transition-all duration-300 ${sidebarCollapsed ? "w-12" : "w-48"}`}>
-            <div className="sticky top-4 rounded-lg border border-border/30 bg-card/20 backdrop-blur-sm overflow-hidden">
-              <div className="flex items-center justify-between px-3 py-2 border-b border-border/20">
-                {!sidebarCollapsed && <span className="text-[9px] font-mono uppercase tracking-[0.2em] text-muted-foreground">Modules</span>}
-                <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} className="text-muted-foreground hover:text-primary transition-colors p-0.5">
-                  {sidebarCollapsed ? <Maximize2 className="w-3 h-3" /> : <Minimize2 className="w-3 h-3" />}
+          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4, delay: 0.1 }}
+            className={`shrink-0 transition-all duration-300 ${sidebarCollapsed ? "w-14" : "w-52"}`}>
+            <div className="sticky top-4 rounded-xl border border-border/20 bg-card/20 backdrop-blur-md overflow-hidden">
+              <div className="flex items-center justify-between px-3 py-2.5 border-b border-border/10">
+                {!sidebarCollapsed && <span className="text-[9px] font-mono uppercase tracking-[0.2em] text-muted-foreground/50">Modules</span>}
+                <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} className="text-muted-foreground/50 hover:text-primary transition-colors p-1 rounded-md hover:bg-primary/5">
+                  {sidebarCollapsed ? <Maximize2 className="w-3.5 h-3.5" /> : <Minimize2 className="w-3.5 h-3.5" />}
                 </button>
               </div>
-              {["command", "intel", "security", "ops"].map((group, gi) => (
-                <div key={group}>
-                  {gi > 0 && <div className="mx-2 h-px bg-border/20" />}
-                  <div className="p-1">
-                    {!sidebarCollapsed && (
-                      <div className={`px-2 py-1.5 text-[8px] font-mono uppercase tracking-[0.25em] ${
-                        group === "command" ? "text-primary/50" : group === "intel" ? "text-neon-purple/50" : group === "security" ? "text-destructive/50" : "text-neon-cyan/50"
-                      }`}>{group}</div>
-                    )}
-                    {C2_MODULES.filter(m => m.group === group).map(mod => (
-                      <C2NavItem key={mod.id} mod={mod} active={activeModule === mod.id} collapsed={sidebarCollapsed} onClick={() => setActiveModule(mod.id)}
-                        badge={mod.id === "challenges" ? challenges.length : mod.id === "users" ? users.length : mod.id === "writeups" && pendingWriteups.length > 0 ? pendingWriteups.length : mod.id === "contacts" && unresolvedContacts.length > 0 ? unresolvedContacts.length : undefined}
-                        badgeColor={mod.id === "writeups" ? "bg-neon-orange" : "bg-secondary"}
-                      />
-                    ))}
+              <div className="max-h-[calc(100vh-200px)] overflow-y-auto">
+                {(["command", "intel", "security", "ops"] as const).map((group, gi) => (
+                  <div key={group}>
+                    {gi > 0 && <div className="mx-3 h-px bg-border/10" />}
+                    <div className="p-1.5">
+                      {!sidebarCollapsed && (
+                        <div className={`px-2.5 py-1.5 text-[8px] font-mono uppercase tracking-[0.25em] ${
+                          group === "command" ? "text-primary/40" : group === "intel" ? "text-neon-purple/40" : group === "security" ? "text-destructive/40" : "text-neon-cyan/40"
+                        }`}>{group}</div>
+                      )}
+                      {C2_MODULES.filter(m => m.group === group).map(mod => (
+                        <C2NavItem key={mod.id} mod={mod} active={activeModule === mod.id} collapsed={sidebarCollapsed} onClick={() => setActiveModule(mod.id)}
+                          badge={mod.id === "challenges" ? challenges.length : mod.id === "users" ? users.length : mod.id === "writeups" && pendingWriteups.length > 0 ? pendingWriteups.length : mod.id === "contacts" && unresolvedContacts.length > 0 ? unresolvedContacts.length : undefined}
+                          badgeColor={mod.id === "writeups" ? "bg-neon-orange" : "bg-secondary"}
+                        />
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* ─── Content ─── */}
           <div className="flex-1 min-w-0">
             <AnimatePresence mode="wait">
-              <motion.div key={activeModule} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
-                <div className="mb-3 rounded-lg border border-border/20 bg-background/35 backdrop-blur-sm px-3 py-2 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2 min-w-0">
-                    {currentModule && <currentModule.icon className={`w-4 h-4 shrink-0 ${currentModule.color}`} />}
-                    <span className="font-mono text-xs uppercase tracking-[0.15em] text-muted-foreground truncate">{currentModule?.label || "UNKNOWN"}</span>
-                    <ChevronRight className="w-3 h-3 text-border shrink-0" />
-                    <span className="font-mono text-xs text-muted-foreground/50 shrink-0">ACTIVE</span>
+              <motion.div key={activeModule}
+                initial={{ opacity: 0, y: 12, scale: 0.99 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -8, scale: 0.99 }}
+                transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] as const }}>
+                {/* Module header breadcrumb */}
+                <div className="mb-4 rounded-xl border border-border/10 bg-card/10 backdrop-blur-sm px-4 py-2.5 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    {currentModule && (
+                      <div className={`p-1.5 rounded-lg bg-background/40 border border-border/10`}>
+                        <currentModule.icon className={`w-4 h-4 ${currentModule.color}`} />
+                      </div>
+                    )}
+                    <span className="font-mono text-xs uppercase tracking-[0.15em] text-foreground font-semibold">{currentModule?.label || "UNKNOWN"}</span>
+                    <ChevronRight className="w-3 h-3 text-border/40" />
+                    <span className="font-mono text-[10px] text-muted-foreground/40">ACTIVE</span>
                   </div>
-                  <div className="hidden sm:flex items-center gap-2 shrink-0">
-                    <Badge variant="outline" className="text-[10px] font-mono border-border/40 text-muted-foreground">{currentModule?.group?.toUpperCase() || "MODULE"}</Badge>
-                    <Badge variant="outline" className="text-[10px] font-mono border-destructive/30 text-destructive">{stats.threats} THREATS</Badge>
+                  <div className="hidden sm:flex items-center gap-2">
+                    <Badge variant="outline" className="text-[9px] font-mono border-border/20 text-muted-foreground/60 rounded-md px-2">{currentModule?.group?.toUpperCase()}</Badge>
+                    {stats.threats > 0 && (
+                      <Badge variant="outline" className="text-[9px] font-mono border-destructive/20 text-destructive/80 rounded-md px-2">{stats.threats} THREATS</Badge>
+                    )}
                   </div>
                 </div>
 
@@ -495,7 +506,7 @@ const Admin = () => {
                 {activeModule === "challenges" && (
                   <C2Panel title="CHALLENGE TARGETS" icon={Target} color="text-primary" actions={
                     <Dialog>
-                      <DialogTrigger asChild><Button size="sm" className="h-6 text-[10px] font-mono uppercase"><Plus className="w-3 h-3 mr-1" />Deploy</Button></DialogTrigger>
+                      <DialogTrigger asChild><Button size="sm" className="h-7 text-[10px] font-mono uppercase gap-1"><Plus className="w-3 h-3" />Deploy</Button></DialogTrigger>
                       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto border-primary/20">
                         <DialogHeader><DialogTitle className="font-display">Deploy New Challenge</DialogTitle></DialogHeader>
                         <div className="space-y-4">
@@ -535,25 +546,25 @@ const Admin = () => {
                         )}
                       </DialogContent>
                     </Dialog>
-                    <div className="divide-y divide-border/10 max-h-[600px] overflow-y-auto">
+                    <div className="divide-y divide-border/5 max-h-[600px] overflow-y-auto">
                       {challenges.length === 0 ? (
-                        <div className="p-8 text-center text-muted-foreground font-mono text-sm">No targets deployed</div>
+                        <div className="p-12 text-center text-muted-foreground/50 font-mono text-sm">No targets deployed</div>
                       ) : challenges.map((c, i) => (
-                        <motion.div key={c.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.02 }}
-                          className="px-4 py-3 flex items-center justify-between hover:bg-primary/3 transition-colors group">
+                        <motion.div key={c.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.02 }}
+                          className="px-4 py-3 flex items-center justify-between hover:bg-primary/[0.02] transition-colors group">
                           <div className="min-w-0">
                             <div className="font-mono text-sm font-semibold flex items-center gap-2 text-foreground">
-                              <span className={`w-1.5 h-1.5 rounded-full ${c.is_active ? "bg-primary" : "bg-muted-foreground"}`} />
+                              <span className={`w-1.5 h-1.5 rounded-full ${c.is_active ? "bg-primary" : "bg-muted-foreground/30"}`} />
                               {c.title}
                               {c.files?.length > 0 && <Badge variant="outline" className="text-[9px] py-0 px-1 border-primary/20 text-primary">{c.files.length} files</Badge>}
                             </div>
-                            <div className="text-[10px] text-muted-foreground font-mono mt-0.5 flex items-center gap-2 flex-wrap">
+                            <div className="text-[10px] text-muted-foreground/60 font-mono mt-0.5 flex items-center gap-2 flex-wrap">
                               <span className={`uppercase ${c.difficulty === "insane" ? "text-destructive" : c.difficulty === "hard" ? "text-neon-orange" : c.difficulty === "medium" ? "text-secondary" : "text-primary"}`}>{c.difficulty}</span>
-                              <span>•</span><span>{c.category}</span><span>•</span><span>{c.points} pts</span><span>•</span><span>{c.solves} solves</span>
+                              <span className="text-border/40">•</span><span>{c.category}</span><span className="text-border/40">•</span><span>{c.points} pts</span><span className="text-border/40">•</span><span>{c.solves} solves</span>
                             </div>
                             <div className="text-[10px] font-mono mt-0.5 flex items-center gap-1.5">
-                              <Key className="w-3 h-3 text-neon-orange" />
-                              <span className="text-neon-orange/70 select-all">{c.flag}</span>
+                              <Key className="w-3 h-3 text-neon-orange/60" />
+                              <span className="text-neon-orange/50 select-all">{c.flag}</span>
                             </div>
                           </div>
                           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -569,7 +580,7 @@ const Admin = () => {
                 {activeModule === "announcements" && (
                   <C2Panel title="BROADCAST CHANNEL" icon={Radio} color="text-neon-orange" actions={
                     <Dialog>
-                      <DialogTrigger asChild><Button size="sm" className="h-6 text-[10px] font-mono uppercase"><Plus className="w-3 h-3 mr-1" />Broadcast</Button></DialogTrigger>
+                      <DialogTrigger asChild><Button size="sm" className="h-7 text-[10px] font-mono uppercase gap-1"><Plus className="w-3 h-3" />Broadcast</Button></DialogTrigger>
                       <DialogContent className="max-w-lg"><DialogHeader><DialogTitle className="font-display">New Broadcast</DialogTitle></DialogHeader>
                         <div className="space-y-4">
                           <div><Label>Title</Label><Input value={newAnnouncement.title} onChange={e => setNewAnnouncement({ ...newAnnouncement, title: e.target.value })} /></div>
@@ -580,17 +591,17 @@ const Admin = () => {
                       </DialogContent>
                     </Dialog>
                   }>
-                    <div className="divide-y divide-border/10 max-h-[600px] overflow-y-auto">
+                    <div className="divide-y divide-border/5 max-h-[600px] overflow-y-auto">
                       {announcements.length === 0 ? (
-                        <div className="p-8 text-center text-muted-foreground font-mono text-sm">No broadcasts</div>
+                        <div className="p-12 text-center text-muted-foreground/50 font-mono text-sm">No broadcasts</div>
                       ) : announcements.map(a => (
-                        <div key={a.id} className={`px-4 py-3 flex items-center justify-between ${!a.is_active ? "opacity-40" : ""}`}>
+                        <div key={a.id} className={`px-4 py-3 flex items-center justify-between ${!a.is_active ? "opacity-30" : ""}`}>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
-                              <span className={`px-1.5 py-0.5 text-[9px] rounded uppercase font-mono ${a.priority === "urgent" ? "bg-destructive/20 text-destructive" : a.priority === "high" ? "bg-neon-orange/20 text-neon-orange" : a.priority === "normal" ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"}`}>{a.priority}</span>
+                              <span className={`px-1.5 py-0.5 text-[9px] rounded-md uppercase font-mono ${a.priority === "urgent" ? "bg-destructive/15 text-destructive" : a.priority === "high" ? "bg-neon-orange/15 text-neon-orange" : a.priority === "normal" ? "bg-primary/15 text-primary" : "bg-muted/30 text-muted-foreground"}`}>{a.priority}</span>
                               <span className="font-mono text-sm font-semibold truncate">{a.title}</span>
                             </div>
-                            <p className="text-xs text-muted-foreground mt-0.5 truncate">{a.content}</p>
+                            <p className="text-xs text-muted-foreground/60 mt-0.5 truncate">{a.content}</p>
                           </div>
                           <div className="flex items-center gap-1 ml-2">
                             <Switch checked={a.is_active} onCheckedChange={() => toggleAnnouncementActive(a.id, a.is_active)} />
@@ -605,7 +616,7 @@ const Admin = () => {
                 {activeModule === "sponsors" && (
                   <C2Panel title="REGISTERED ASSETS" icon={Award} color="text-neon-cyan" actions={
                     <Dialog>
-                      <DialogTrigger asChild><Button size="sm" className="h-6 text-[10px] font-mono uppercase"><Plus className="w-3 h-3 mr-1" />Register</Button></DialogTrigger>
+                      <DialogTrigger asChild><Button size="sm" className="h-7 text-[10px] font-mono uppercase gap-1"><Plus className="w-3 h-3" />Register</Button></DialogTrigger>
                       <DialogContent className="max-w-lg"><DialogHeader><DialogTitle className="font-display">Register Asset</DialogTitle></DialogHeader>
                         <div className="space-y-4">
                           <div><Label>Name</Label><Input value={newSponsor.name} onChange={e => setNewSponsor({ ...newSponsor, name: e.target.value })} /></div>
@@ -636,18 +647,18 @@ const Admin = () => {
                         )}
                       </DialogContent>
                     </Dialog>
-                    <div className="divide-y divide-border/10 max-h-[600px] overflow-y-auto">
+                    <div className="divide-y divide-border/5 max-h-[600px] overflow-y-auto">
                       {sponsors.length === 0 ? (
-                        <div className="p-8 text-center text-muted-foreground font-mono text-sm">No assets registered</div>
+                        <div className="p-12 text-center text-muted-foreground/50 font-mono text-sm">No assets registered</div>
                       ) : sponsors.map(s => (
-                        <div key={s.id} className={`px-4 py-3 flex items-center justify-between ${!s.is_active ? "opacity-40" : ""}`}>
+                        <div key={s.id} className={`px-4 py-3 flex items-center justify-between ${!s.is_active ? "opacity-30" : ""}`}>
                           <div className="flex items-center gap-3">
-                            <div className="w-12 h-8 rounded border border-border/30 overflow-hidden bg-muted/30 flex items-center justify-center">
+                            <div className="w-12 h-8 rounded-lg border border-border/20 overflow-hidden bg-background/30 flex items-center justify-center">
                               {s.logo_url ? <img src={s.logo_url} alt={s.name} className="w-full h-full object-cover" /> : <Image className="h-4 w-4 text-muted-foreground" />}
                             </div>
                             <div>
                               <div className="flex items-center gap-2">
-                                <span className={`px-1.5 py-0.5 text-[9px] rounded uppercase font-mono ${s.tier === "platinum" ? "bg-neon-cyan/20 text-neon-cyan" : s.tier === "gold" ? "bg-yellow-500/20 text-yellow-400" : s.tier === "silver" ? "bg-gray-400/20 text-gray-300" : "bg-neon-orange/20 text-neon-orange"}`}>{s.tier}</span>
+                                <span className={`px-1.5 py-0.5 text-[9px] rounded-md uppercase font-mono ${s.tier === "platinum" ? "bg-neon-cyan/15 text-neon-cyan" : s.tier === "gold" ? "bg-yellow-500/15 text-yellow-400" : s.tier === "silver" ? "bg-gray-400/15 text-gray-300" : "bg-neon-orange/15 text-neon-orange"}`}>{s.tier}</span>
                                 <span className="font-mono text-sm font-semibold">{s.name}</span>
                               </div>
                             </div>
@@ -667,21 +678,22 @@ const Admin = () => {
                   <C2Panel title="INTELLIGENCE REPORTS" icon={FileText} color="text-neon-purple">
                     <div className="p-4 space-y-3 max-h-[600px] overflow-y-auto">
                       {pendingWriteups.length === 0 ? (
-                        <div className="text-center py-8 text-muted-foreground font-mono text-sm">No pending intel reports</div>
+                        <div className="text-center py-12 text-muted-foreground/50 font-mono text-sm">No pending intel reports</div>
                       ) : pendingWriteups.map(w => (
-                        <div key={w.id} className="p-4 rounded-lg border border-neon-orange/20 bg-neon-orange/5">
+                        <motion.div key={w.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                          className="p-4 rounded-xl border border-neon-orange/15 bg-neon-orange/[0.03]">
                           <div className="flex items-start justify-between mb-2">
                             <div>
                               <h3 className="font-display text-sm font-bold">{w.title}</h3>
-                              <p className="text-[10px] text-muted-foreground font-mono">Target: {w.challenges?.title} • Agent: {w.profiles?.username}</p>
+                              <p className="text-[10px] text-muted-foreground/60 font-mono">Target: {w.challenges?.title} • Agent: {w.profiles?.username}</p>
                             </div>
                             <div className="flex gap-1">
                               <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-primary hover:text-primary" onClick={() => approveWriteup(w.id)}><CheckCircle className="h-4 w-4" /></Button>
                               <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-destructive" onClick={() => rejectWriteup(w.id)}><XCircle className="h-4 w-4" /></Button>
                             </div>
                           </div>
-                          <pre className="text-xs font-mono whitespace-pre-wrap text-muted-foreground bg-background/50 p-3 rounded max-h-32 overflow-y-auto">{w.content}</pre>
-                        </div>
+                          <pre className="text-xs font-mono whitespace-pre-wrap text-muted-foreground/60 bg-background/30 p-3 rounded-lg max-h-32 overflow-y-auto">{w.content}</pre>
+                        </motion.div>
                       ))}
                     </div>
                   </C2Panel>
@@ -689,46 +701,43 @@ const Admin = () => {
 
                 {activeModule === "competition" && (
                   <C2Panel title="OPERATIONS CONTROL" icon={Trophy} color="text-primary">
-                    <div className="p-4 max-w-2xl space-y-4">
+                    <div className="p-4 max-w-2xl space-y-3">
                       {competitionSettings && (
                         <>
-                          <div className="flex items-center justify-between p-3 rounded-lg border border-border/20 bg-background/40">
-                            <div><div className="font-mono text-sm font-semibold">Competition Mode</div><div className="text-[10px] text-muted-foreground">Enable timed operations</div></div>
-                            <Switch checked={competitionSettings.is_active} onCheckedChange={checked => updateCompetitionSettings({ is_active: checked })} />
-                          </div>
-                          <div className="flex items-center justify-between p-3 rounded-lg border border-border/20 bg-background/40">
-                            <div><div className="font-mono text-sm font-semibold">Team Mode</div><div className="text-[10px] text-muted-foreground">Team-based scoring</div></div>
-                            <Switch checked={competitionSettings.team_mode} onCheckedChange={checked => updateCompetitionSettings({ team_mode: checked })} />
-                          </div>
-                          <div className="flex items-center justify-between p-3 rounded-lg border border-border/20 bg-background/40">
-                            <div><div className="font-mono text-sm font-semibold">Dynamic Scoring</div><div className="text-[10px] text-muted-foreground">Points decay with solves</div></div>
-                            <Switch checked={competitionSettings.decay_enabled} onCheckedChange={checked => updateCompetitionSettings({ decay_enabled: checked })} />
-                          </div>
+                          {[
+                            { label: "Competition Mode", desc: "Enable timed operations", checked: competitionSettings.is_active, onChange: (v: boolean) => updateCompetitionSettings({ is_active: v }) },
+                            { label: "Team Mode", desc: "Team-based scoring", checked: competitionSettings.team_mode, onChange: (v: boolean) => updateCompetitionSettings({ team_mode: v }) },
+                            { label: "Dynamic Scoring", desc: "Points decay with solves", checked: competitionSettings.decay_enabled, onChange: (v: boolean) => updateCompetitionSettings({ decay_enabled: v }) },
+                          ].map(item => (
+                            <div key={item.label} className="flex items-center justify-between p-3.5 rounded-xl border border-border/10 bg-background/20 hover:bg-background/30 transition-colors">
+                              <div><div className="font-mono text-sm font-semibold">{item.label}</div><div className="text-[10px] text-muted-foreground/60">{item.desc}</div></div>
+                              <Switch checked={item.checked} onCheckedChange={item.onChange} />
+                            </div>
+                          ))}
                           {competitionSettings.decay_enabled && (
-                            <div className="p-3 rounded-lg border border-border/20 bg-background/40">
-                              <Label className="text-[10px] font-mono uppercase">Minimum Points</Label>
-                              <Input type="number" className="mt-1" value={competitionSettings.decay_minimum} onChange={e => updateCompetitionSettings({ decay_minimum: parseInt(e.target.value) || 50 })} />
+                            <div className="p-3.5 rounded-xl border border-border/10 bg-background/20">
+                              <Label className="text-[10px] font-mono uppercase text-muted-foreground/60">Minimum Points</Label>
+                              <Input type="number" className="mt-1.5" value={competitionSettings.decay_minimum} onChange={e => updateCompetitionSettings({ decay_minimum: parseInt(e.target.value) || 50 })} />
                             </div>
                           )}
                           {competitionSettings.is_active && (
                             <>
-                              <div className="p-3 rounded-lg border border-border/20 bg-background/40">
-                                <Label className="text-[10px] font-mono uppercase flex items-center gap-1"><Clock className="w-3 h-3" />Start Time</Label>
-                                <Input type="datetime-local" className="mt-1" value={competitionSettings.start_time?.slice(0, 16) || ""} onChange={e => updateCompetitionSettings({ start_time: e.target.value ? new Date(e.target.value).toISOString() : null })} />
-                              </div>
-                              <div className="p-3 rounded-lg border border-border/20 bg-background/40">
-                                <Label className="text-[10px] font-mono uppercase flex items-center gap-1"><Clock className="w-3 h-3" />End Time</Label>
-                                <Input type="datetime-local" className="mt-1" value={competitionSettings.end_time?.slice(0, 16) || ""} onChange={e => updateCompetitionSettings({ end_time: e.target.value ? new Date(e.target.value).toISOString() : null })} />
-                              </div>
-                              <div className="p-3 rounded-lg border border-border/20 bg-background/40">
-                                <Label className="text-[10px] font-mono uppercase flex items-center gap-1"><Clock className="w-3 h-3" />Freeze Time</Label>
-                                <Input type="datetime-local" className="mt-1" value={competitionSettings.freeze_time?.slice(0, 16) || ""} onChange={e => updateCompetitionSettings({ freeze_time: e.target.value ? new Date(e.target.value).toISOString() : null })} />
-                              </div>
+                              {[
+                                { label: "Start Time", value: competitionSettings.start_time, key: "start_time" },
+                                { label: "End Time", value: competitionSettings.end_time, key: "end_time" },
+                                { label: "Freeze Time", value: competitionSettings.freeze_time, key: "freeze_time" },
+                              ].map(field => (
+                                <div key={field.key} className="p-3.5 rounded-xl border border-border/10 bg-background/20">
+                                  <Label className="text-[10px] font-mono uppercase flex items-center gap-1 text-muted-foreground/60"><Clock className="w-3 h-3" />{field.label}</Label>
+                                  <Input type="datetime-local" className="mt-1.5" value={field.value?.slice(0, 16) || ""}
+                                    onChange={e => updateCompetitionSettings({ [field.key]: e.target.value ? new Date(e.target.value).toISOString() : null } as any)} />
+                                </div>
+                              ))}
                             </>
                           )}
-                          <div className={`p-3 rounded-lg border ${competitionSettings.is_active ? "border-primary/30 bg-primary/5" : "border-border/20 bg-background/40"}`}>
+                          <div className={`p-3.5 rounded-xl border ${competitionSettings.is_active ? "border-primary/20 bg-primary/[0.03]" : "border-border/10 bg-background/20"}`}>
                             <div className="flex items-center gap-2">
-                              <div className={`w-2.5 h-2.5 rounded-full ${competitionSettings.is_active ? "bg-primary animate-pulse" : "bg-muted-foreground"}`} />
+                              <div className={`w-2.5 h-2.5 rounded-full ${competitionSettings.is_active ? "bg-primary animate-pulse" : "bg-muted-foreground/30"}`} />
                               <span className="font-mono text-sm font-bold">{competitionSettings.is_active ? "OPERATIONS LIVE" : "OPERATIONS STANDBY"}</span>
                             </div>
                           </div>
@@ -742,26 +751,27 @@ const Admin = () => {
                   <C2Panel title="COMMUNICATIONS LOG" icon={Mail} color="text-secondary">
                     <div className="p-4 space-y-3 max-h-[600px] overflow-y-auto">
                       {contactSubmissions.length === 0 ? (
-                        <div className="text-center py-8 text-muted-foreground font-mono text-sm"><MessageSquare className="w-8 h-8 mx-auto mb-2 opacity-30" />No communications received</div>
+                        <div className="text-center py-12 text-muted-foreground/50 font-mono text-sm"><MessageSquare className="w-8 h-8 mx-auto mb-2 opacity-20" />No communications received</div>
                       ) : contactSubmissions.map(sub => (
-                        <div key={sub.id} className={`p-3 rounded-lg border ${sub.is_resolved ? "border-border/20 bg-background/20 opacity-50" : "border-secondary/20 bg-secondary/5"}`}>
+                        <motion.div key={sub.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                          className={`p-3.5 rounded-xl border ${sub.is_resolved ? "border-border/10 bg-background/10 opacity-40" : "border-secondary/15 bg-secondary/[0.03]"}`}>
                           <div className="flex justify-between items-start mb-2">
                             <div>
                               <div className="flex items-center gap-2 mb-0.5">
                                 <span className="font-mono text-sm font-semibold">{sub.subject}</span>
-                                {sub.is_resolved && <Badge variant="outline" className="text-[9px] py-0 border-primary/20 text-primary">Resolved</Badge>}
+                                {sub.is_resolved && <Badge variant="outline" className="text-[9px] py-0 border-primary/15 text-primary/60">Resolved</Badge>}
                               </div>
-                              <div className="text-[10px] text-muted-foreground font-mono flex items-center gap-3">
+                              <div className="text-[10px] text-muted-foreground/50 font-mono flex items-center gap-3">
                                 <span>{sub.name}</span><span>{sub.email}</span><span>{new Date(sub.created_at).toLocaleDateString()}</span>
                               </div>
                             </div>
-                            <div className="flex gap-1">
-                              <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => toggleContactResolved(sub.id, sub.is_resolved || false)}><CheckCircle className={`h-3.5 w-3.5 ${sub.is_resolved ? "text-muted-foreground" : "text-primary"}`} /></Button>
-                            </div>
+                            <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => toggleContactResolved(sub.id, sub.is_resolved || false)}>
+                              <CheckCircle className={`h-3.5 w-3.5 ${sub.is_resolved ? "text-muted-foreground/30" : "text-primary"}`} />
+                            </Button>
                           </div>
-                          <p className="text-xs text-muted-foreground bg-background/40 p-2 rounded font-mono">{sub.message}</p>
-                          <a href={`mailto:${sub.email}?subject=Re: ${encodeURIComponent(sub.subject)}`} className="text-[10px] text-primary hover:underline font-mono mt-1 inline-block">Reply →</a>
-                        </div>
+                          <p className="text-xs text-muted-foreground/60 bg-background/30 p-2.5 rounded-lg font-mono">{sub.message}</p>
+                          <a href={`mailto:${sub.email}?subject=Re: ${encodeURIComponent(sub.subject)}`} className="text-[10px] text-primary/60 hover:text-primary hover:underline font-mono mt-1.5 inline-block">Reply →</a>
+                        </motion.div>
                       ))}
                     </div>
                   </C2Panel>
@@ -778,13 +788,14 @@ const Admin = () => {
         </div>
 
         {/* ═══ BOTTOM STATUS BAR ═══ */}
-        <div className="mt-4 rounded-lg border border-border/20 bg-card/10 px-4 py-2 flex items-center justify-between text-[9px] font-mono text-muted-foreground/60 uppercase tracking-[0.15em]">
-          <span>CyberOps C2 v4.0 • {C2_MODULES.length} modules • {challenges.length} targets • {users.length} operators • {sessions} sessions</span>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
+          className="rounded-xl border border-border/10 bg-card/10 px-5 py-2 flex items-center justify-between text-[9px] font-mono text-muted-foreground/40 uppercase tracking-[0.15em]">
+          <span>CyberOps C2 v4.0 • {C2_MODULES.length} modules • {challenges.length} targets • {users.length} operators</span>
           <span className="flex items-center gap-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+            <div className="w-1.5 h-1.5 rounded-full bg-primary/60 animate-pulse" />
             All systems operational
           </span>
-        </div>
+        </motion.div>
       </div>
 
       {/* Admin Promotion Dialog */}
