@@ -1,5 +1,5 @@
-import { useEffect, useState, useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import { Trophy, Medal, Award, TrendingUp, Crown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -12,35 +12,21 @@ interface Player {
 
 const getRankStyle = (rank: number) => {
   switch (rank) {
-    case 1: return { icon: <Crown className="h-5 w-5 text-neon-orange" style={{ filter: 'drop-shadow(0 0 6px hsl(var(--neon-orange) / 0.5))' }} />, bg: "bg-neon-orange/5 border-neon-orange/20" };
-    case 2: return { icon: <Medal className="h-5 w-5 text-muted-foreground" style={{ filter: 'drop-shadow(0 0 4px hsl(var(--muted-foreground) / 0.4))' }} />, bg: "bg-muted/5 border-muted/10" };
-    case 3: return { icon: <Award className="h-5 w-5 text-neon-orange" style={{ filter: 'drop-shadow(0 0 4px hsl(var(--neon-orange) / 0.4))' }} />, bg: "bg-neon-orange/5 border-neon-orange/10" };
+    case 1: return { icon: <Crown className="h-5 w-5 text-neon-orange" />, bg: "bg-neon-orange/5 border-neon-orange/20" };
+    case 2: return { icon: <Medal className="h-5 w-5 text-muted-foreground" />, bg: "bg-muted/5 border-muted/10" };
+    case 3: return { icon: <Award className="h-5 w-5 text-neon-orange" />, bg: "bg-neon-orange/5 border-neon-orange/10" };
     default: return { icon: <span className="text-muted-foreground font-mono text-sm">#{rank}</span>, bg: "border-border/30" };
   }
-};
-
-const rowVariants = {
-  hidden: { opacity: 0, x: 40, scale: 0.95 },
-  visible: (i: number) => ({
-    opacity: 1, x: 0, scale: 1,
-    transition: { delay: i * 0.12, duration: 0.6, ease: [0.22, 1, 0.36, 1] as const }
-  }),
 };
 
 const Leaderboard = () => {
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({ countries: 0 });
-  const sectionRef = useRef<HTMLElement>(null);
-  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start end", "end start"] });
-  const leftX = useTransform(scrollYProgress, [0, 0.4], [-60, 0]);
-  const rightX = useTransform(scrollYProgress, [0, 0.4], [60, 0]);
-  const sectionOpacity = useTransform(scrollYProgress, [0, 0.2], [0.3, 1]);
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
       const { data } = await supabase.from("profiles").select("id, username, country, total_points").order("total_points", { ascending: false }).limit(5);
-      if (data) { setPlayers(data); setStats({ countries: new Set(data.map(p => p.country).filter(Boolean)).size || 1 }); }
+      if (data) setPlayers(data);
       setLoading(false);
     };
     fetchLeaderboard();
@@ -49,14 +35,18 @@ const Leaderboard = () => {
   }, []);
 
   return (
-    <section ref={sectionRef} id="leaderboard" className="py-28 relative overflow-hidden">
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/3 rounded-full blur-[150px]" />
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-secondary/20 to-transparent" />
+    <section id="leaderboard" className="py-28 relative overflow-hidden">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/3 rounded-full blur-[120px]" />
 
-      <motion.div className="container mx-auto px-4 relative z-10" style={{ opacity: sectionOpacity }}>
+      <div className="container mx-auto px-4 relative z-10">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
-          <motion.div style={{ x: leftX }} initial={{ opacity: 0 }} whileInView={{ opacity: 1 }}
-            transition={{ duration: 0.8 }} viewport={{ once: true, margin: "-100px" }}>
+          {/* Left text */}
+          <motion.div
+            initial={{ opacity: 0, x: -40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] as const }}
+            viewport={{ once: true, margin: "-80px" }}
+          >
             <span className="inline-flex items-center gap-2 px-5 py-2 rounded-full glass text-xs font-mono uppercase tracking-[0.2em] text-secondary mb-6">
               <span className="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse" />
               Global Rankings
@@ -67,19 +57,16 @@ const Leaderboard = () => {
             <p className="text-muted-foreground leading-relaxed mb-10 text-lg">
               Compete against hackers worldwide. Solve challenges, earn points, and prove you're among the elite.
             </p>
-            <div className="grid grid-cols-2 gap-4">
-              <motion.div whileHover={{ scale: 1.05, y: -4 }} className="glass-card rounded-xl p-5">
-                <div className="font-display text-3xl font-black text-primary mb-1">{stats.countries || 1}</div>
-                <div className="text-[10px] font-mono uppercase tracking-[0.15em] text-muted-foreground">Countries</div>
-              </motion.div>
-              <motion.div whileHover={{ scale: 1.05, y: -4 }} className="glass-card rounded-xl p-5">
-                <div className="font-display text-3xl font-black text-secondary mb-1">24/7</div>
-                <div className="text-[10px] font-mono uppercase tracking-[0.15em] text-muted-foreground">Live Updates</div>
-              </motion.div>
-            </div>
           </motion.div>
 
-          <motion.div style={{ x: rightX }} className="glass-card rounded-2xl overflow-hidden">
+          {/* Leaderboard card */}
+          <motion.div
+            initial={{ opacity: 0, x: 40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] as const }}
+            viewport={{ once: true, margin: "-80px" }}
+            className="glass-card rounded-2xl overflow-hidden"
+          >
             <div className="px-6 py-4 border-b border-border/20 flex items-center gap-2">
               <div className="flex gap-2">
                 <div className="w-3 h-3 rounded-full bg-destructive/80" />
@@ -101,9 +88,14 @@ const Leaderboard = () => {
                 players.map((player, index) => {
                   const rankStyle = getRankStyle(index + 1);
                   return (
-                    <motion.div key={player.id} custom={index} variants={rowVariants} initial="hidden" whileInView="visible"
-                      viewport={{ once: true }} whileHover={{ x: 6, scale: 1.02 }}
-                      className={`flex items-center justify-between p-4 rounded-xl transition-all border ${rankStyle.bg} mb-2 last:mb-0 hover:bg-primary/5`}>
+                    <motion.div
+                      key={player.id}
+                      initial={{ opacity: 0, x: 20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.08, duration: 0.5, ease: [0.22, 1, 0.36, 1] as const }}
+                      viewport={{ once: true }}
+                      className={`flex items-center justify-between p-4 rounded-xl border ${rankStyle.bg} mb-2 last:mb-0 hover:bg-primary/5 transition-colors duration-200`}
+                    >
                       <div className="flex items-center gap-4">
                         <div className="w-8 flex justify-center">{rankStyle.icon}</div>
                         <span className="text-xl">{player.country || "🌍"}</span>
@@ -113,7 +105,7 @@ const Leaderboard = () => {
                         </div>
                       </div>
                       <div className="flex items-center gap-1 text-xs font-mono text-primary">
-                        <TrendingUp className="h-3 w-3" />+{Math.floor(Math.random() * 15) + 1}
+                        <TrendingUp className="h-3 w-3" />
                       </div>
                     </motion.div>
                   );
@@ -122,7 +114,7 @@ const Leaderboard = () => {
             </div>
           </motion.div>
         </div>
-      </motion.div>
+      </div>
     </section>
   );
 };
