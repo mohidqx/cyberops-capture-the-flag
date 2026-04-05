@@ -1,7 +1,6 @@
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import { Globe, Lock, Binary, Search, Server, FileCode } from "lucide-react";
 import ChallengeCard from "./ChallengeCard";
-import { useRef } from "react";
 
 const challenges = [
   { title: "Web Exploitation", description: "XSS, SQL injection, CSRF, and more. Break into vulnerable web applications.", icon: Globe, difficulty: "Medium" as const, points: 500, solves: 234 },
@@ -12,44 +11,37 @@ const challenges = [
   { title: "Scripting", description: "Automate attacks, parse data, and solve programming puzzles.", icon: FileCode, difficulty: "Easy" as const, points: 250, solves: 892 },
 ];
 
-const Challenges = () => {
-  const sectionRef = useRef<HTMLElement>(null);
-  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start end", "end start"] });
-  const gridY = useTransform(scrollYProgress, [0, 0.5], [60, 0]);
-  const gridOpacity = useTransform(scrollYProgress, [0, 0.3], [0.5, 1]);
+const Challenges = () => (
+  <section id="challenges" className="py-28 relative overflow-hidden">
+    <div className="absolute inset-0 bg-grid-dense opacity-15" />
 
-  return (
-    <section ref={sectionRef} id="challenges" className="py-28 relative overflow-hidden">
-      <div className="absolute inset-0 bg-grid-dense opacity-20" />
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-secondary/20 to-transparent" />
+    <div className="container mx-auto px-4 relative z-10">
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] as const }}
+        viewport={{ once: true, margin: "-80px" }}
+        className="text-center mb-16"
+      >
+        <span className="inline-flex items-center gap-2 px-5 py-2 rounded-full glass text-xs font-mono uppercase tracking-[0.2em] text-primary mb-6">
+          <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+          Challenge Categories
+        </span>
+        <h2 className="font-display text-4xl md:text-6xl font-black text-foreground mb-5 tracking-tight">
+          Choose Your <span className="text-gradient">Battlefield</span>
+        </h2>
+        <p className="text-muted-foreground max-w-xl mx-auto text-lg">
+          From beginner-friendly to expert-level challenges. Each category tests different skills in the cybersecurity domain.
+        </p>
+      </motion.div>
 
-      <div className="container mx-auto px-4 relative z-10">
-        <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          viewport={{ once: true, margin: "-100px" }} className="text-center mb-16">
-          <motion.span initial={{ opacity: 0, scale: 0.8 }} whileInView={{ opacity: 1, scale: 1 }}
-            transition={{ type: "spring", stiffness: 200 }} viewport={{ once: true }}
-            className="inline-flex items-center gap-2 px-5 py-2 rounded-full glass text-xs font-mono uppercase tracking-[0.2em] text-primary mb-6">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-            Challenge Categories
-          </motion.span>
-          <h2 className="font-display text-4xl md:text-6xl font-black text-foreground mb-5 tracking-tight">
-            Choose Your <span className="text-gradient">Battlefield</span>
-          </h2>
-          <p className="text-muted-foreground max-w-xl mx-auto text-lg">
-            From beginner-friendly to expert-level challenges. Each category tests different skills in the cybersecurity domain.
-          </p>
-        </motion.div>
-
-        <motion.div style={{ y: gridY, opacity: gridOpacity }} className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {challenges.map((challenge, index) => (
-            <ChallengeCard key={challenge.title} {...challenge} index={index} />
-          ))}
-        </motion.div>
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {challenges.map((challenge, index) => (
+          <ChallengeCard key={challenge.title} {...challenge} index={index} />
+        ))}
       </div>
-    </section>
-  );
-};
+    </div>
+  </section>
+);
 
 export default Challenges;
