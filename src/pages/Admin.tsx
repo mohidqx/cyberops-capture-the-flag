@@ -7,7 +7,8 @@ import {
   Terminal, Cpu, Wifi, Zap, Radio, Database, Server, Lock,
   RefreshCw, Maximize2, Minimize2, Radar, ChevronRight, Shield,
   Search, Globe, Bug, Skull, Layers, Download, Upload, Settings,
-  Gauge, Network, HardDrive, Power, Hash, Bell, Palette, Ban, Code, Key
+  Gauge, Network, HardDrive, Power, Hash, Bell, Palette, Ban, Code, Key,
+  PanelLeftClose, PanelLeft, Command
 } from "lucide-react";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import { Button } from "@/components/ui/button";
@@ -34,7 +35,6 @@ import VisitorLogViewer from "@/components/VisitorLogViewer";
 import UserActivityTimeline from "@/components/UserActivityTimeline";
 import AnomalyDetection from "@/components/AnomalyDetection";
 
-// New C2 Modules
 import { LiveClock, SystemStatusBar, C2Panel, C2NavItem, StatusPill } from "@/components/admin/C2Shared";
 import { OverviewDashboard } from "@/components/admin/OverviewModule";
 import { SystemConfigModule } from "@/components/admin/SystemConfigModule";
@@ -54,32 +54,37 @@ interface Announcement { id: string; title: string; content: string; priority: "
 interface Sponsor { id: string; name: string; logo_url: string; website_url: string | null; tier: "platinum" | "gold" | "silver" | "bronze"; is_active: boolean; display_order: number; }
 interface ContactSubmission { id: string; name: string; email: string; subject: string; message: string; is_resolved: boolean; created_at: string; }
 
-// ─── C2 Module definitions (expanded) ───────────────────────────────────────
+// ─── Module Registry ────────────────────────────────────────────────────────
 const C2_MODULES = [
-  { id: "overview", label: "OVERVIEW", icon: Radar, color: "text-primary", group: "command" },
-  { id: "challenges", label: "CHALLENGES", icon: Target, color: "text-primary", group: "command" },
-  { id: "users", label: "OPERATORS", icon: Users, color: "text-secondary", group: "command" },
-  { id: "site-settings", label: "SITE CTRL", icon: Settings, color: "text-neon-purple", group: "command" },
-  { id: "announcements", label: "BROADCAST", icon: Radio, color: "text-neon-orange", group: "command" },
-  { id: "sponsors", label: "ASSETS", icon: Award, color: "text-neon-cyan", group: "command" },
+  { id: "overview", label: "Overview", icon: Radar, color: "text-primary", group: "command" },
+  { id: "challenges", label: "Challenges", icon: Target, color: "text-primary", group: "command" },
+  { id: "users", label: "Users", icon: Users, color: "text-secondary", group: "command" },
+  { id: "site-settings", label: "Site Control", icon: Settings, color: "text-neon-purple", group: "command" },
+  { id: "announcements", label: "Broadcasts", icon: Radio, color: "text-neon-orange", group: "command" },
+  { id: "sponsors", label: "Sponsors", icon: Award, color: "text-neon-cyan", group: "command" },
   { id: "content", label: "CMS", icon: FileText, color: "text-neon-cyan", group: "command" },
-  { id: "writeups", label: "INTEL", icon: FileText, color: "text-neon-purple", group: "intel" },
-  { id: "competition", label: "OPERATIONS", icon: Trophy, color: "text-primary", group: "intel" },
-  { id: "contacts", label: "COMMS", icon: Mail, color: "text-secondary", group: "intel" },
-  { id: "terminal", label: "TERMINAL", icon: Terminal, color: "text-primary", group: "intel" },
-  { id: "security", label: "THREAT MAP", icon: Globe, color: "text-destructive", group: "security" },
-  { id: "audit-logs", label: "AUDIT TRAIL", icon: ShieldAlert, color: "text-neon-orange", group: "security" },
-  { id: "visitors", label: "RECON", icon: Fingerprint, color: "text-neon-cyan", group: "security" },
-  { id: "investigation", label: "FORENSICS", icon: Search, color: "text-neon-purple", group: "security" },
-  { id: "anomalies", label: "ANOMALIES", icon: AlertTriangle, color: "text-destructive", group: "security" },
-  { id: "network", label: "NETWORK OPS", icon: Network, color: "text-primary", group: "ops" },
-  { id: "performance", label: "PERFORMANCE", icon: Activity, color: "text-secondary", group: "ops" },
-  { id: "data-ops", label: "DATA OPS", icon: Database, color: "text-neon-cyan", group: "ops" },
-  { id: "config", label: "SYS CONFIG", icon: Settings, color: "text-neon-orange", group: "ops" },
+  { id: "writeups", label: "Writeups", icon: FileText, color: "text-neon-purple", group: "intel" },
+  { id: "competition", label: "Competition", icon: Trophy, color: "text-primary", group: "intel" },
+  { id: "contacts", label: "Messages", icon: Mail, color: "text-secondary", group: "intel" },
+  { id: "terminal", label: "Terminal", icon: Terminal, color: "text-primary", group: "intel" },
+  { id: "security", label: "Threat Map", icon: Globe, color: "text-destructive", group: "security" },
+  { id: "audit-logs", label: "Audit Trail", icon: ShieldAlert, color: "text-neon-orange", group: "security" },
+  { id: "visitors", label: "Visitors", icon: Fingerprint, color: "text-neon-cyan", group: "security" },
+  { id: "investigation", label: "Forensics", icon: Search, color: "text-neon-purple", group: "security" },
+  { id: "anomalies", label: "Anomalies", icon: AlertTriangle, color: "text-destructive", group: "security" },
+  { id: "network", label: "Network", icon: Network, color: "text-primary", group: "ops" },
+  { id: "performance", label: "Performance", icon: Activity, color: "text-secondary", group: "ops" },
+  { id: "data-ops", label: "Data Ops", icon: Database, color: "text-neon-cyan", group: "ops" },
+  { id: "config", label: "Sys Config", icon: Settings, color: "text-neon-orange", group: "ops" },
 ];
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// MAIN ADMIN C2 COMPONENT
+const GROUP_META: Record<string, { label: string; color: string }> = {
+  command: { label: "Command", color: "text-primary/30" },
+  intel: { label: "Intel", color: "text-neon-purple/30" },
+  security: { label: "Security", color: "text-destructive/30" },
+  ops: { label: "Operations", color: "text-neon-cyan/30" },
+};
+
 // ═══════════════════════════════════════════════════════════════════════════════
 const Admin = () => {
   const { profile } = useAuth();
@@ -106,27 +111,12 @@ const Admin = () => {
   useEffect(() => {
     const moduleKeys = ["overview", "challenges", "users", "announcements", "sponsors", "writeups", "competition", "contacts", "terminal"];
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Ctrl+K: Command Palette
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-        e.preventDefault();
-        setCommandPaletteOpen(prev => !prev);
-        return;
-      }
-      // Escape: collapse sidebar or close palette
-      if (e.key === "Escape") {
-        if (commandPaletteOpen) {
-          setCommandPaletteOpen(false);
-        } else {
-          setSidebarCollapsed(prev => !prev);
-        }
-        return;
-      }
-      // Ctrl+1-9: switch modules
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") { e.preventDefault(); setCommandPaletteOpen(prev => !prev); return; }
+      if (e.key === "Escape") { if (commandPaletteOpen) setCommandPaletteOpen(false); return; }
       if ((e.metaKey || e.ctrlKey) && e.key >= "1" && e.key <= "9") {
         e.preventDefault();
         const idx = parseInt(e.key) - 1;
         if (idx < moduleKeys.length) setActiveModule(moduleKeys[idx]);
-        return;
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -192,22 +182,22 @@ const Admin = () => {
     c2Toast.success("Challenge updated!"); setEditingChallenge(null); fetchData();
   };
 
-  const deleteChallenge = async (id: string) => { await supabase.from("challenges").delete().eq("id", id); c2Toast.alert("Target eliminated"); fetchData(); };
-  const approveWriteup = async (id: string) => { await supabase.from("writeups").update({ is_approved: true }).eq("id", id); c2Toast.success("Intel approved"); fetchData(); };
-  const rejectWriteup = async (id: string) => { await supabase.from("writeups").delete().eq("id", id); c2Toast.warning("Intel rejected"); fetchData(); };
+  const deleteChallenge = async (id: string) => { await supabase.from("challenges").delete().eq("id", id); c2Toast.alert("Challenge deleted"); fetchData(); };
+  const approveWriteup = async (id: string) => { await supabase.from("writeups").update({ is_approved: true }).eq("id", id); c2Toast.success("Writeup approved"); fetchData(); };
+  const rejectWriteup = async (id: string) => { await supabase.from("writeups").delete().eq("id", id); c2Toast.warning("Writeup rejected"); fetchData(); };
 
   const confirmMakeAdmin = async () => {
     if (!promotingUserId) return;
     const { error } = await supabase.from("user_roles").upsert({ user_id: promotingUserId, role: "admin" as any });
     if (error) { c2Toast.error(error.message); setPromotingUserId(null); return; }
-    c2Toast.deploy("Operator promoted to ADMIN"); setPromotingUserId(null); fetchData();
+    c2Toast.deploy("User promoted to Admin"); setPromotingUserId(null); fetchData();
   };
 
   const updateCompetitionSettings = async (updates: Partial<CompetitionSettings>) => {
     if (!competitionSettings) return;
     const { error } = await supabase.from("competition_settings").update(updates).eq("id", competitionSettings.id);
     if (error) { c2Toast.error(error.message); return; }
-    setCompetitionSettings({ ...competitionSettings, ...updates }); c2Toast.success("Operations updated");
+    setCompetitionSettings({ ...competitionSettings, ...updates }); c2Toast.success("Settings updated");
   };
 
   const createAnnouncement = async () => {
@@ -223,15 +213,15 @@ const Admin = () => {
     if (!newSponsor.name || !newSponsor.logo_url) { c2Toast.error("Name and logo required"); return; }
     const { error } = await supabase.from("sponsors").insert({ name: newSponsor.name, logo_url: newSponsor.logo_url, website_url: newSponsor.website_url || null, tier: newSponsor.tier, display_order: newSponsor.display_order });
     if (error) { c2Toast.error(error.message); return; }
-    c2Toast.deploy("Asset registered"); setNewSponsor({ name: "", logo_url: "", website_url: "", tier: "bronze", display_order: 0 }); fetchData();
+    c2Toast.deploy("Sponsor added"); setNewSponsor({ name: "", logo_url: "", website_url: "", tier: "bronze", display_order: 0 }); fetchData();
   };
   const updateSponsor = async () => {
     if (!editingSponsor) return;
     const { error } = await supabase.from("sponsors").update({ name: editingSponsor.name, logo_url: editingSponsor.logo_url, website_url: editingSponsor.website_url, tier: editingSponsor.tier, display_order: editingSponsor.display_order }).eq("id", editingSponsor.id);
     if (error) { c2Toast.error(error.message); return; }
-    c2Toast.success("Asset updated"); setEditingSponsor(null); fetchData();
+    c2Toast.success("Sponsor updated"); setEditingSponsor(null); fetchData();
   };
-  const deleteSponsor = async (id: string) => { await supabase.from("sponsors").delete().eq("id", id); c2Toast.alert("Asset removed"); fetchData(); };
+  const deleteSponsor = async (id: string) => { await supabase.from("sponsors").delete().eq("id", id); c2Toast.alert("Sponsor removed"); fetchData(); };
   const toggleSponsorActive = async (id: string, isActive: boolean) => { await supabase.from("sponsors").update({ is_active: !isActive }).eq("id", id); fetchData(); };
 
   const toggleContactResolved = async (id: string, isResolved: boolean) => { await supabase.from("contact_submissions").update({ is_resolved: !isResolved }).eq("id", id); fetchData(); };
@@ -269,71 +259,38 @@ const Admin = () => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a"); a.href = url; a.download = filename; a.click();
       URL.revokeObjectURL(url);
-      toast.success(`Exported ${data.length} rows from ${table}`);
+      toast.success(`Exported ${data.length} rows`);
     } catch (e: any) { toast.error(e.message); }
   }, []);
 
   const handleQuickAction = useCallback((action: string) => {
     const moduleMap: Record<string, string> = {
-      "New Challenge": "challenges",
-      "Broadcast": "announcements",
-      "Manage Teams": "users",
-      "Flag Stats": "challenges",
-      "View Sessions": "visitors",
-      "SQL Console": "terminal",
-      "Start CTF": "competition",
-      "Email Blast": "contacts",
-      "Fingerprint Scan": "visitors",
-      "Archive Logs": "audit-logs",
-      "Deep Search": "investigation",
-      "Deploy Function": "terminal",
-      "Clone Challenge": "challenges",
-      "Edit Scoring": "config",
-      "Test Webhook": "terminal",
-      "Rotate Keys": "config",
-      "Save Config": "config",
-      "Toggle Debug": "terminal",
-      "Import Data": "data-ops",
-      "Test Alerts": "anomalies",
+      "New Challenge": "challenges", "Broadcast": "announcements", "Manage Teams": "users",
+      "Flag Stats": "challenges", "View Sessions": "visitors", "SQL Console": "terminal",
+      "Start CTF": "competition", "Email Blast": "contacts", "Fingerprint Scan": "visitors",
+      "Archive Logs": "audit-logs", "Deep Search": "investigation", "Deploy Function": "terminal",
+      "Clone Challenge": "challenges", "Edit Scoring": "config", "Test Webhook": "terminal",
+      "Rotate Keys": "config", "Save Config": "config", "Toggle Debug": "terminal",
+      "Import Data": "data-ops", "Test Alerts": "anomalies",
     };
 
-    // Destructive actions requiring confirmation
     const destructiveActions: Record<string, { desc: string; onConfirm: () => void }> = {
-      "Lock System": {
-        desc: "This will prevent all non-admin users from accessing the platform. Competition will be paused.",
-        onConfirm: () => { toast.success("System locked — all user access restricted"); },
-      },
-      "Restart Services": {
-        desc: "This will restart all backend services including realtime, auth, and edge functions. Users may experience ~30s downtime.",
-        onConfirm: () => { toast.success("Services restarting — estimated 30s downtime"); },
-      },
-      "Ban IP Range": {
-        desc: "This will block an entire IP range from accessing the platform. Navigate to Network Ops to configure the CIDR range.",
-        onConfirm: () => { setActiveModule("network"); toast.info("Configure IP range in Network Ops"); },
-      },
-      "Block Country": {
-        desc: "This will block all traffic from a specific country. Navigate to Network Ops to select the country.",
-        onConfirm: () => { setActiveModule("network"); toast.info("Configure country block in Network Ops"); },
-      },
-      "Purge Cache": {
-        desc: "This will clear all cached data including CDN cache, query cache, and session cache. Users may experience slower load times temporarily.",
-        onConfirm: () => { toast.success("Cache purged — 2.4MB freed, CDN will repopulate"); },
-      },
-      "Rotate Keys": {
-        desc: "This will regenerate all API keys. Existing integrations will stop working until updated with new keys.",
-        onConfirm: () => { toast.success("API keys rotated — update all external integrations"); },
-      },
+      "Lock System": { desc: "This will prevent all non-admin users from accessing the platform.", onConfirm: () => { toast.success("System locked"); } },
+      "Restart Services": { desc: "This will restart all backend services. Users may experience ~30s downtime.", onConfirm: () => { toast.success("Services restarting"); } },
+      "Ban IP Range": { desc: "Navigate to Network Ops to configure the CIDR range.", onConfirm: () => { setActiveModule("network"); } },
+      "Block Country": { desc: "Navigate to Network Ops to select the country.", onConfirm: () => { setActiveModule("network"); } },
+      "Purge Cache": { desc: "This will clear all cached data.", onConfirm: () => { toast.success("Cache purged"); } },
+      "Rotate Keys": { desc: "This will regenerate all API keys.", onConfirm: () => { toast.success("API keys rotated"); } },
     };
 
-    // Direct (safe) actions
     const directActions: Record<string, () => void> = {
       "Refresh Data": () => { fetchData(); c2Toast.success("Data refreshed"); },
       "Export Logs": () => exportTableCsv("audit_logs", `audit_logs_${new Date().toISOString().split("T")[0]}.csv`),
-      "Run Scan": () => { c2Toast.scan("Security scan initiated — checking RLS policies, auth rules, and rate limits..."); },
-      "Health Check": () => { c2Toast.success("All 16 services healthy — DB: 42ms, Auth: 8ms, Realtime: 12ms"); },
-      "Backup DB": () => { c2Toast.deploy("Database backup queued — estimated completion: 30s"); },
-      "DNS Check": () => { c2Toast.success("DNS resolution OK — A record: 151.101.1.195, TTL: 300s"); },
-      "Load Test": () => { c2Toast.info("Load test simulation: 100 concurrent users, 500 req/s — all passed"); },
+      "Run Scan": () => { c2Toast.scan("Security scan initiated..."); },
+      "Health Check": () => { c2Toast.success("All services healthy"); },
+      "Backup DB": () => { c2Toast.deploy("Database backup queued"); },
+      "DNS Check": () => { c2Toast.success("DNS resolution OK"); },
+      "Load Test": () => { c2Toast.info("Load test passed"); },
     };
 
     if (destructiveActions[action]) {
@@ -344,12 +301,12 @@ const Admin = () => {
     } else if (moduleMap[action]) {
       playSound("click");
       setActiveModule(moduleMap[action]);
-      toast.info(`⚡ Navigated to ${moduleMap[action].toUpperCase()}`);
     } else {
       playSound("click");
-      toast.info(`⚡ ${action} — executing...`);
+      toast.info(`${action} — executing...`);
     }
   }, [fetchData, exportTableCsv]);
+
   const currentModule = C2_MODULES.find(m => m.id === activeModule);
   const pendingOps = stats.unresolvedContacts + stats.pendingWriteups;
   const threatLevel = stats.threats > 15 ? "CRITICAL" : stats.threats > 5 ? "HIGH" : stats.threats > 0 ? "ELEVATED" : "LOW";
@@ -358,138 +315,128 @@ const Admin = () => {
   return (
     <DashboardLayout>
       <AdminSecurityNotifications />
-      <CommandPalette
-        open={commandPaletteOpen}
-        onClose={() => setCommandPaletteOpen(false)}
-        onNavigate={(moduleId) => setActiveModule(moduleId)}
-        stats={stats}
-      />
-      {/* Destructive Action Confirmation Dialog */}
+      <CommandPalette open={commandPaletteOpen} onClose={() => setCommandPaletteOpen(false)} onNavigate={(moduleId) => setActiveModule(moduleId)} stats={stats} />
+
       <AlertDialog open={!!confirmAction} onOpenChange={(open) => !open && setConfirmAction(null)}>
-        <AlertDialogContent className="border-destructive/30 bg-card">
+        <AlertDialogContent className="border-destructive/20 bg-card">
           <AlertDialogHeader>
-            <AlertDialogTitle className="font-display flex items-center gap-2 text-destructive">
+            <AlertDialogTitle className="flex items-center gap-2 text-destructive">
               <AlertTriangle className="h-5 w-5" />
-              Confirm: {confirmAction?.label}
+              {confirmAction?.label}
             </AlertDialogTitle>
-            <AlertDialogDescription className="font-mono text-xs leading-relaxed">
-              {confirmAction?.desc}
-            </AlertDialogDescription>
+            <AlertDialogDescription className="text-sm">{confirmAction?.desc}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="font-mono text-xs">Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 font-mono text-xs"
-              onClick={() => { confirmAction?.onConfirm(); setConfirmAction(null); }}
-            >
-              Confirm {confirmAction?.label}
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction className="bg-destructive text-destructive-foreground" onClick={() => { confirmAction?.onConfirm(); setConfirmAction(null); }}>
+              Confirm
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="max-w-[1600px] mx-auto -mt-2 space-y-4">
-        {/* ═══ C2 TOP BAR — Sleek & Minimal ═══ */}
-        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
-          className="relative rounded-xl border border-border/20 bg-card/30 backdrop-blur-md overflow-hidden shadow-[0_8px_32px_-12px_hsl(var(--primary)/0.15)]">
-          {/* Subtle gradient bg */}
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,hsl(var(--primary)/0.08),transparent)]" />
-          
-          <div className="relative z-10 flex items-center justify-between px-5 py-3">
+      <div className="max-w-[1600px] mx-auto space-y-0">
+        {/* ═══ TOP BAR ═══ */}
+        <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
+          className="rounded-2xl border border-border/[0.06] bg-card/30 backdrop-blur-xl overflow-hidden mb-5 shadow-sm">
+          <div className="flex items-center justify-between px-6 py-4">
             <div className="flex items-center gap-4">
-              <motion.div animate={{ rotate: [0, 360] }} transition={{ duration: 25, repeat: Infinity, ease: "linear" }} className="relative">
-                <Radar className="h-7 w-7 text-primary drop-shadow-[0_0_8px_hsl(var(--primary)/0.5)]" />
-              </motion.div>
+              <div className="p-2 rounded-xl bg-primary/[0.06] border border-primary/[0.08]">
+                <Radar className="h-5 w-5 text-primary" />
+              </div>
               <div>
-                <h1 className="font-display text-lg font-black text-foreground tracking-tight leading-none">C2 COMMAND CENTER</h1>
-                <p className="text-[10px] font-mono text-muted-foreground/60 tracking-[0.15em] uppercase mt-0.5">{C2_MODULES.length} Modules Active • v4.0</p>
+                <h1 className="text-lg font-bold text-foreground tracking-tight">Command Center</h1>
+                <p className="text-[11px] text-muted-foreground/40 mt-0.5">{C2_MODULES.length} modules • {profile?.username || "admin"}</p>
               </div>
             </div>
-            <div className="hidden md:flex items-center gap-3">
+            <div className="hidden md:flex items-center gap-4">
               <button onClick={() => setCommandPaletteOpen(true)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border/20 bg-background/30 hover:bg-background/50 hover:border-primary/20 transition-all text-xs font-mono text-muted-foreground hover:text-foreground">
-                <Search className="w-3.5 h-3.5" />
-                <span className="text-[10px] hidden lg:inline">Search</span>
-                <kbd className="text-[9px] px-1.5 py-0.5 rounded border border-border/20 bg-background/50 ml-1">⌘K</kbd>
+                className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border/[0.08] bg-background/30 hover:bg-background/50 transition-all text-xs text-muted-foreground/50 hover:text-foreground">
+                <Command className="w-3.5 h-3.5" />
+                <span className="hidden lg:inline text-[11px]">Search</span>
+                <kbd className="text-[9px] px-1.5 py-0.5 rounded-md border border-border/[0.1] bg-background/50 ml-1 font-mono">⌘K</kbd>
               </button>
-              <div className="h-4 w-px bg-border/20" />
+              <div className="h-5 w-px bg-border/[0.06]" />
               <LiveClock />
-              <div className="h-4 w-px bg-border/20" />
-              <div className="flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                <span className="text-[10px] font-mono text-primary">ONLINE</span>
+              <div className="h-5 w-px bg-border/[0.06]" />
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-primary/80 animate-pulse" />
+                <span className="text-[11px] text-primary/80 font-medium">Online</span>
               </div>
-              <Badge variant="outline" className="text-[10px] font-mono border-border/20 text-muted-foreground">{profile?.username || "ADMIN"}</Badge>
-              <StatusPill icon={Skull} label="THREAT" value={threatLevel} color={threatLevelColor} pulse={threatLevel !== "LOW"} />
+              <StatusPill icon={Shield} label="THREAT" value={threatLevel} color={threatLevelColor} pulse={threatLevel !== "LOW"} />
             </div>
           </div>
-          {/* Minimal status bar */}
-          <div className="relative z-10 px-5 py-1.5 border-t border-border/10 overflow-x-auto">
+          <div className="px-6 py-2 border-t border-border/[0.04]">
             <SystemStatusBar stats={stats} />
           </div>
         </motion.div>
 
         {/* ═══ MAIN LAYOUT ═══ */}
-        <div className="flex gap-4">
+        <div className="flex gap-5">
           {/* ─── Sidebar ─── */}
-          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4, delay: 0.1 }}
-            className={`shrink-0 transition-all duration-300 ${sidebarCollapsed ? "w-14" : "w-52"}`}>
-            <div className="sticky top-4 rounded-xl border border-border/20 bg-card/20 backdrop-blur-md overflow-hidden">
-              <div className="flex items-center justify-between px-3 py-2.5 border-b border-border/10">
-                {!sidebarCollapsed && <span className="text-[9px] font-mono uppercase tracking-[0.2em] text-muted-foreground/50">Modules</span>}
-                <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} className="text-muted-foreground/50 hover:text-primary transition-colors p-1 rounded-md hover:bg-primary/5">
-                  {sidebarCollapsed ? <Maximize2 className="w-3.5 h-3.5" /> : <Minimize2 className="w-3.5 h-3.5" />}
+          <motion.div initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.35, delay: 0.1 }}
+            className={`shrink-0 transition-all duration-300 ease-out ${sidebarCollapsed ? "w-[56px]" : "w-56"}`}>
+            <div className="sticky top-4 rounded-2xl border border-border/[0.06] bg-card/25 backdrop-blur-xl overflow-hidden">
+              {/* Sidebar header */}
+              <div className="flex items-center justify-between px-3 py-3 border-b border-border/[0.04]">
+                {!sidebarCollapsed && <span className="text-[10px] font-medium uppercase tracking-[0.15em] text-muted-foreground/30">Modules</span>}
+                <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} className="text-muted-foreground/30 hover:text-foreground/60 transition-colors p-1 rounded-lg hover:bg-muted/[0.06]">
+                  {sidebarCollapsed ? <PanelLeft className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
                 </button>
               </div>
-              <div className="max-h-[calc(100vh-200px)] overflow-y-auto">
+
+              {/* Module list */}
+              <div className="max-h-[calc(100vh-220px)] overflow-y-auto p-2 space-y-0.5">
                 {(["command", "intel", "security", "ops"] as const).map((group, gi) => (
                   <div key={group}>
-                    {gi > 0 && <div className="mx-3 h-px bg-border/10" />}
-                    <div className="p-1.5">
-                      {!sidebarCollapsed && (
-                        <div className={`px-2.5 py-1.5 text-[8px] font-mono uppercase tracking-[0.25em] ${
-                          group === "command" ? "text-primary/40" : group === "intel" ? "text-neon-purple/40" : group === "security" ? "text-destructive/40" : "text-neon-cyan/40"
-                        }`}>{group}</div>
-                      )}
-                      {C2_MODULES.filter(m => m.group === group).map(mod => (
-                        <C2NavItem key={mod.id} mod={mod} active={activeModule === mod.id} collapsed={sidebarCollapsed} onClick={() => setActiveModule(mod.id)}
-                          badge={mod.id === "challenges" ? challenges.length : mod.id === "users" ? users.length : mod.id === "writeups" && pendingWriteups.length > 0 ? pendingWriteups.length : mod.id === "contacts" && unresolvedContacts.length > 0 ? unresolvedContacts.length : undefined}
-                          badgeColor={mod.id === "writeups" ? "bg-neon-orange" : "bg-secondary"}
-                        />
-                      ))}
-                    </div>
+                    {gi > 0 && <div className="mx-2 my-2 h-px bg-border/[0.04]" />}
+                    {!sidebarCollapsed && (
+                      <div className={`px-3 py-2 text-[9px] font-medium uppercase tracking-[0.2em] ${GROUP_META[group].color}`}>
+                        {GROUP_META[group].label}
+                      </div>
+                    )}
+                    {C2_MODULES.filter(m => m.group === group).map(mod => (
+                      <C2NavItem key={mod.id} mod={mod} active={activeModule === mod.id} collapsed={sidebarCollapsed} onClick={() => setActiveModule(mod.id)}
+                        badge={mod.id === "challenges" ? challenges.length : mod.id === "users" ? users.length : mod.id === "writeups" && pendingWriteups.length > 0 ? pendingWriteups.length : mod.id === "contacts" && unresolvedContacts.length > 0 ? unresolvedContacts.length : undefined}
+                        badgeColor={mod.id === "writeups" ? "bg-neon-orange" : "bg-secondary"}
+                      />
+                    ))}
                   </div>
                 ))}
               </div>
             </div>
           </motion.div>
 
-          {/* ─── Content ─── */}
+          {/* ─── Content Area ─── */}
           <div className="flex-1 min-w-0">
             <AnimatePresence mode="wait">
               <motion.div key={activeModule}
-                initial={{ opacity: 0, y: 12, scale: 0.99 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -8, scale: 0.99 }}
-                transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] as const }}>
-                {/* Module header breadcrumb */}
-                <div className="mb-4 rounded-xl border border-border/10 bg-card/10 backdrop-blur-sm px-4 py-2.5 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2.5 min-w-0">
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] as const }}>
+
+                {/* Module breadcrumb */}
+                <div className="mb-5 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
                     {currentModule && (
-                      <div className={`p-1.5 rounded-lg bg-background/40 border border-border/10`}>
+                      <div className={`p-2 rounded-xl bg-background/40 border border-border/[0.06]`}>
                         <currentModule.icon className={`w-4 h-4 ${currentModule.color}`} />
                       </div>
                     )}
-                    <span className="font-mono text-xs uppercase tracking-[0.15em] text-foreground font-semibold">{currentModule?.label || "UNKNOWN"}</span>
-                    <ChevronRight className="w-3 h-3 text-border/40" />
-                    <span className="font-mono text-[10px] text-muted-foreground/40">ACTIVE</span>
+                    <div>
+                      <h2 className="text-base font-semibold text-foreground">{currentModule?.label || "Unknown"}</h2>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-[10px] text-muted-foreground/30 uppercase tracking-wider">{currentModule?.group}</span>
+                        {stats.threats > 0 && (
+                          <Badge variant="outline" className="text-[9px] border-destructive/15 text-destructive/60 px-1.5 py-0">{stats.threats} threats</Badge>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <div className="hidden sm:flex items-center gap-2">
-                    <Badge variant="outline" className="text-[9px] font-mono border-border/20 text-muted-foreground/60 rounded-md px-2">{currentModule?.group?.toUpperCase()}</Badge>
-                    {stats.threats > 0 && (
-                      <Badge variant="outline" className="text-[9px] font-mono border-destructive/20 text-destructive/80 rounded-md px-2">{stats.threats} THREATS</Badge>
-                    )}
-                  </div>
+                  <Button variant="ghost" size="sm" onClick={() => fetchData()} className="text-muted-foreground/40 hover:text-foreground">
+                    <RefreshCw className="w-3.5 h-3.5" />
+                  </Button>
                 </div>
 
                 {/* ═══ MODULE CONTENT ═══ */}
@@ -504,11 +451,11 @@ const Admin = () => {
                 {activeModule === "content" && <ContentManagementModule />}
 
                 {activeModule === "challenges" && (
-                  <C2Panel title="CHALLENGE TARGETS" icon={Target} color="text-primary" actions={
+                  <C2Panel title="CHALLENGES" icon={Target} color="text-primary" actions={
                     <Dialog>
-                      <DialogTrigger asChild><Button size="sm" className="h-7 text-[10px] font-mono uppercase gap-1"><Plus className="w-3 h-3" />Deploy</Button></DialogTrigger>
-                      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto border-primary/20">
-                        <DialogHeader><DialogTitle className="font-display">Deploy New Challenge</DialogTitle></DialogHeader>
+                      <DialogTrigger asChild><Button size="sm" className="h-8 text-xs gap-1.5"><Plus className="w-3.5 h-3.5" />New Challenge</Button></DialogTrigger>
+                      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+                        <DialogHeader><DialogTitle>Deploy New Challenge</DialogTitle></DialogHeader>
                         <div className="space-y-4">
                           <div><Label>Title</Label><Input value={newChallenge.title} onChange={e => setNewChallenge({ ...newChallenge, title: e.target.value })} /></div>
                           <div><Label>Description</Label><Textarea className="min-h-[100px]" value={newChallenge.description} onChange={e => setNewChallenge({ ...newChallenge, description: e.target.value })} /></div>
@@ -527,7 +474,7 @@ const Admin = () => {
                   }>
                     <Dialog open={!!editingChallenge} onOpenChange={open => !open && setEditingChallenge(null)}>
                       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-                        <DialogHeader><DialogTitle className="font-display">Modify Challenge</DialogTitle></DialogHeader>
+                        <DialogHeader><DialogTitle>Edit Challenge</DialogTitle></DialogHeader>
                         {editingChallenge && (
                           <div className="space-y-4">
                             <div><Label>Title</Label><Input value={editingChallenge.title} onChange={e => setEditingChallenge({ ...editingChallenge, title: e.target.value })} /></div>
@@ -538,241 +485,250 @@ const Admin = () => {
                             </div>
                             <div><Label>Points</Label><Input type="number" value={editingChallenge.points} onChange={e => setEditingChallenge({ ...editingChallenge, points: parseInt(e.target.value) || 0 })} /></div>
                             <div><Label>Flag</Label><Input value={editingChallenge.flag} onChange={e => setEditingChallenge({ ...editingChallenge, flag: e.target.value })} /></div>
-                            <div><Label>Hints</Label><Textarea value={editingChallenge.hintsText ?? (editingChallenge.hints || []).join("\n")} onChange={e => setEditingChallenge({ ...editingChallenge, hintsText: e.target.value })} /></div>
-                            <div><Label>Hint Costs</Label><Input value={editingChallenge.hintCostsText ?? (editingChallenge.hint_costs || []).join(", ")} onChange={e => setEditingChallenge({ ...editingChallenge, hintCostsText: e.target.value })} /></div>
-                            <div><Label>Files</Label><ChallengeFileUpload challengeId={editingChallenge.id} existingFiles={editingChallenge.files || []} onFilesUpdated={files => setEditingChallenge({ ...editingChallenge, files })} /></div>
-                            <Button onClick={updateChallenge} className="w-full">Update Target</Button>
+                            <div><Label>Hints (one per line)</Label><Textarea value={editingChallenge.hintsText ?? editingChallenge.hints?.join("\n") ?? ""} onChange={e => setEditingChallenge({ ...editingChallenge, hintsText: e.target.value })} /></div>
+                            <div><Label>Hint Costs</Label><Input value={editingChallenge.hintCostsText ?? editingChallenge.hint_costs?.join(",") ?? ""} onChange={e => setEditingChallenge({ ...editingChallenge, hintCostsText: e.target.value })} /></div>
+                            <ChallengeFileUpload files={editingChallenge.files || []} onFilesChange={(files) => setEditingChallenge({ ...editingChallenge, files })} />
+                            <div className="flex gap-2">
+                              <Button onClick={updateChallenge} className="flex-1">Save Changes</Button>
+                              <Button variant="outline" onClick={() => setEditingChallenge(null)}>Cancel</Button>
+                            </div>
                           </div>
                         )}
                       </DialogContent>
                     </Dialog>
-                    <div className="divide-y divide-border/5 max-h-[600px] overflow-y-auto">
-                      {challenges.length === 0 ? (
-                        <div className="p-12 text-center text-muted-foreground/50 font-mono text-sm">No targets deployed</div>
-                      ) : challenges.map((c, i) => (
-                        <motion.div key={c.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.02 }}
-                          className="px-4 py-3 flex items-center justify-between hover:bg-primary/[0.02] transition-colors group">
-                          <div className="min-w-0">
-                            <div className="font-mono text-sm font-semibold flex items-center gap-2 text-foreground">
-                              <span className={`w-1.5 h-1.5 rounded-full ${c.is_active ? "bg-primary" : "bg-muted-foreground/30"}`} />
-                              {c.title}
-                              {c.files?.length > 0 && <Badge variant="outline" className="text-[9px] py-0 px-1 border-primary/20 text-primary">{c.files.length} files</Badge>}
+
+                    <div className="divide-y divide-border/[0.04]">
+                      {challenges.map((c, i) => (
+                        <motion.div key={c.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.02 }}
+                          className="px-5 py-4 flex items-center justify-between hover:bg-muted/[0.03] transition-colors group">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2.5 mb-1">
+                              <span className="font-medium text-sm">{c.title}</span>
+                              <Badge variant="outline" className="text-[9px] px-1.5 py-0">{c.category}</Badge>
+                              <Badge variant={c.difficulty === "insane" ? "destructive" : "outline"} className="text-[9px] px-1.5 py-0">{c.difficulty}</Badge>
+                              {!c.is_active && <Badge variant="outline" className="text-[9px] text-muted-foreground/40 px-1.5 py-0">Inactive</Badge>}
                             </div>
-                            <div className="text-[10px] text-muted-foreground/60 font-mono mt-0.5 flex items-center gap-2 flex-wrap">
-                              <span className={`uppercase ${c.difficulty === "insane" ? "text-destructive" : c.difficulty === "hard" ? "text-neon-orange" : c.difficulty === "medium" ? "text-secondary" : "text-primary"}`}>{c.difficulty}</span>
-                              <span className="text-border/40">•</span><span>{c.category}</span><span className="text-border/40">•</span><span>{c.points} pts</span><span className="text-border/40">•</span><span>{c.solves} solves</span>
-                            </div>
-                            <div className="text-[10px] font-mono mt-0.5 flex items-center gap-1.5">
-                              <Key className="w-3 h-3 text-neon-orange/60" />
-                              <span className="text-neon-orange/50 select-all">{c.flag}</span>
+                            <div className="text-[11px] text-muted-foreground/40 flex items-center gap-3">
+                              <span>{c.points} pts</span>
+                              <span>{c.solves || 0} solves</span>
+                              <span>{c.hints?.length || 0} hints</span>
                             </div>
                           </div>
                           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => setEditingChallenge(c)}><Edit className="h-3.5 w-3.5 text-muted-foreground" /></Button>
-                            <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => deleteChallenge(c.id)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setEditingChallenge({ ...c, hintsText: c.hints?.join("\n") || "", hintCostsText: c.hint_costs?.join(",") || "" })}>
+                              <Edit className="h-3.5 w-3.5 text-muted-foreground" />
+                            </Button>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => deleteChallenge(c.id)}>
+                              <Trash2 className="h-3.5 w-3.5 text-destructive/60" />
+                            </Button>
                           </div>
                         </motion.div>
                       ))}
+                      {challenges.length === 0 && (
+                        <div className="py-16 text-center text-muted-foreground/30 text-sm">No challenges yet</div>
+                      )}
                     </div>
                   </C2Panel>
                 )}
 
                 {activeModule === "announcements" && (
-                  <C2Panel title="BROADCAST CHANNEL" icon={Radio} color="text-neon-orange" actions={
+                  <C2Panel title="BROADCASTS" icon={Radio} color="text-neon-orange" actions={
                     <Dialog>
-                      <DialogTrigger asChild><Button size="sm" className="h-7 text-[10px] font-mono uppercase gap-1"><Plus className="w-3 h-3" />Broadcast</Button></DialogTrigger>
-                      <DialogContent className="max-w-lg"><DialogHeader><DialogTitle className="font-display">New Broadcast</DialogTitle></DialogHeader>
+                      <DialogTrigger asChild><Button size="sm" className="h-8 text-xs gap-1.5"><Plus className="w-3.5 h-3.5" />New</Button></DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader><DialogTitle>New Broadcast</DialogTitle></DialogHeader>
                         <div className="space-y-4">
                           <div><Label>Title</Label><Input value={newAnnouncement.title} onChange={e => setNewAnnouncement({ ...newAnnouncement, title: e.target.value })} /></div>
-                          <div><Label>Content</Label><Textarea className="min-h-[100px]" value={newAnnouncement.content} onChange={e => setNewAnnouncement({ ...newAnnouncement, content: e.target.value })} /></div>
-                          <div><Label>Priority</Label><Select value={newAnnouncement.priority} onValueChange={(v: any) => setNewAnnouncement({ ...newAnnouncement, priority: v })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="low">Low</SelectItem><SelectItem value="normal">Normal</SelectItem><SelectItem value="high">High</SelectItem><SelectItem value="urgent">Urgent</SelectItem></SelectContent></Select></div>
+                          <div><Label>Content</Label><Textarea value={newAnnouncement.content} onChange={e => setNewAnnouncement({ ...newAnnouncement, content: e.target.value })} /></div>
+                          <div><Label>Priority</Label>
+                            <Select value={newAnnouncement.priority} onValueChange={v => setNewAnnouncement({ ...newAnnouncement, priority: v as any })}>
+                              <SelectTrigger><SelectValue /></SelectTrigger>
+                              <SelectContent>{["low","normal","high","urgent"].map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+                            </Select>
+                          </div>
                           <Button onClick={createAnnouncement} className="w-full">Send Broadcast</Button>
                         </div>
                       </DialogContent>
                     </Dialog>
                   }>
-                    <div className="divide-y divide-border/5 max-h-[600px] overflow-y-auto">
-                      {announcements.length === 0 ? (
-                        <div className="p-12 text-center text-muted-foreground/50 font-mono text-sm">No broadcasts</div>
-                      ) : announcements.map(a => (
-                        <div key={a.id} className={`px-4 py-3 flex items-center justify-between ${!a.is_active ? "opacity-30" : ""}`}>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span className={`px-1.5 py-0.5 text-[9px] rounded-md uppercase font-mono ${a.priority === "urgent" ? "bg-destructive/15 text-destructive" : a.priority === "high" ? "bg-neon-orange/15 text-neon-orange" : a.priority === "normal" ? "bg-primary/15 text-primary" : "bg-muted/30 text-muted-foreground"}`}>{a.priority}</span>
-                              <span className="font-mono text-sm font-semibold truncate">{a.title}</span>
+                    <div className="divide-y divide-border/[0.04]">
+                      {announcements.map((a, i) => (
+                        <div key={a.id} className="px-5 py-4 flex items-center justify-between hover:bg-muted/[0.03] transition-colors group">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-medium text-sm">{a.title}</span>
+                              <Badge variant={a.priority === "urgent" ? "destructive" : "outline"} className="text-[9px] px-1.5 py-0">{a.priority}</Badge>
+                              {!a.is_active && <Badge variant="outline" className="text-[9px] text-muted-foreground/40 px-1.5 py-0">Hidden</Badge>}
                             </div>
-                            <p className="text-xs text-muted-foreground/60 mt-0.5 truncate">{a.content}</p>
+                            <p className="text-[11px] text-muted-foreground/40 line-clamp-1">{a.content}</p>
                           </div>
-                          <div className="flex items-center gap-1 ml-2">
-                            <Switch checked={a.is_active} onCheckedChange={() => toggleAnnouncementActive(a.id, a.is_active)} />
-                            <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => deleteAnnouncement(a.id)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
+                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => toggleAnnouncementActive(a.id, a.is_active)}>
+                              {a.is_active ? <Eye className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5 text-muted-foreground/30" />}
+                            </Button>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => deleteAnnouncement(a.id)}>
+                              <Trash2 className="h-3.5 w-3.5 text-destructive/60" />
+                            </Button>
                           </div>
                         </div>
                       ))}
+                      {announcements.length === 0 && <div className="py-16 text-center text-muted-foreground/30 text-sm">No broadcasts</div>}
                     </div>
                   </C2Panel>
                 )}
 
                 {activeModule === "sponsors" && (
-                  <C2Panel title="REGISTERED ASSETS" icon={Award} color="text-neon-cyan" actions={
+                  <C2Panel title="SPONSORS" icon={Award} color="text-neon-cyan" actions={
                     <Dialog>
-                      <DialogTrigger asChild><Button size="sm" className="h-7 text-[10px] font-mono uppercase gap-1"><Plus className="w-3 h-3" />Register</Button></DialogTrigger>
-                      <DialogContent className="max-w-lg"><DialogHeader><DialogTitle className="font-display">Register Asset</DialogTitle></DialogHeader>
+                      <DialogTrigger asChild><Button size="sm" className="h-8 text-xs gap-1.5"><Plus className="w-3.5 h-3.5" />Add</Button></DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader><DialogTitle>Add Sponsor</DialogTitle></DialogHeader>
                         <div className="space-y-4">
                           <div><Label>Name</Label><Input value={newSponsor.name} onChange={e => setNewSponsor({ ...newSponsor, name: e.target.value })} /></div>
                           <div><Label>Logo URL</Label><Input value={newSponsor.logo_url} onChange={e => setNewSponsor({ ...newSponsor, logo_url: e.target.value })} /></div>
                           <div><Label>Website</Label><Input value={newSponsor.website_url} onChange={e => setNewSponsor({ ...newSponsor, website_url: e.target.value })} /></div>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div><Label>Tier</Label><Select value={newSponsor.tier} onValueChange={(v: any) => setNewSponsor({ ...newSponsor, tier: v })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="platinum">Platinum</SelectItem><SelectItem value="gold">Gold</SelectItem><SelectItem value="silver">Silver</SelectItem><SelectItem value="bronze">Bronze</SelectItem></SelectContent></Select></div>
-                            <div><Label>Order</Label><Input type="number" value={newSponsor.display_order} onChange={e => setNewSponsor({ ...newSponsor, display_order: parseInt(e.target.value) || 0 })} /></div>
+                          <div><Label>Tier</Label>
+                            <Select value={newSponsor.tier} onValueChange={v => setNewSponsor({ ...newSponsor, tier: v as any })}>
+                              <SelectTrigger><SelectValue /></SelectTrigger>
+                              <SelectContent>{["platinum","gold","silver","bronze"].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                            </Select>
                           </div>
-                          <Button onClick={createSponsor} className="w-full">Register Asset</Button>
+                          <div><Label>Display Order</Label><Input type="number" value={newSponsor.display_order} onChange={e => setNewSponsor({ ...newSponsor, display_order: parseInt(e.target.value) || 0 })} /></div>
+                          <Button onClick={createSponsor} className="w-full">Add Sponsor</Button>
                         </div>
                       </DialogContent>
                     </Dialog>
                   }>
                     <Dialog open={!!editingSponsor} onOpenChange={open => !open && setEditingSponsor(null)}>
-                      <DialogContent className="max-w-lg"><DialogHeader><DialogTitle className="font-display">Edit Asset</DialogTitle></DialogHeader>
+                      <DialogContent>
+                        <DialogHeader><DialogTitle>Edit Sponsor</DialogTitle></DialogHeader>
                         {editingSponsor && (
                           <div className="space-y-4">
                             <div><Label>Name</Label><Input value={editingSponsor.name} onChange={e => setEditingSponsor({ ...editingSponsor, name: e.target.value })} /></div>
                             <div><Label>Logo URL</Label><Input value={editingSponsor.logo_url} onChange={e => setEditingSponsor({ ...editingSponsor, logo_url: e.target.value })} /></div>
                             <div><Label>Website</Label><Input value={editingSponsor.website_url || ""} onChange={e => setEditingSponsor({ ...editingSponsor, website_url: e.target.value })} /></div>
-                            <div className="grid grid-cols-2 gap-4">
-                              <div><Label>Tier</Label><Select value={editingSponsor.tier} onValueChange={(v: any) => setEditingSponsor({ ...editingSponsor, tier: v })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="platinum">Platinum</SelectItem><SelectItem value="gold">Gold</SelectItem><SelectItem value="silver">Silver</SelectItem><SelectItem value="bronze">Bronze</SelectItem></SelectContent></Select></div>
-                              <div><Label>Order</Label><Input type="number" value={editingSponsor.display_order} onChange={e => setEditingSponsor({ ...editingSponsor, display_order: parseInt(e.target.value) || 0 })} /></div>
+                            <div><Label>Tier</Label>
+                              <Select value={editingSponsor.tier} onValueChange={v => setEditingSponsor({ ...editingSponsor, tier: v as any })}>
+                                <SelectTrigger><SelectValue /></SelectTrigger>
+                                <SelectContent>{["platinum","gold","silver","bronze"].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                              </Select>
                             </div>
-                            <Button onClick={updateSponsor} className="w-full">Update Asset</Button>
+                            <Button onClick={updateSponsor} className="w-full">Save Changes</Button>
                           </div>
                         )}
                       </DialogContent>
                     </Dialog>
-                    <div className="divide-y divide-border/5 max-h-[600px] overflow-y-auto">
-                      {sponsors.length === 0 ? (
-                        <div className="p-12 text-center text-muted-foreground/50 font-mono text-sm">No assets registered</div>
-                      ) : sponsors.map(s => (
-                        <div key={s.id} className={`px-4 py-3 flex items-center justify-between ${!s.is_active ? "opacity-30" : ""}`}>
+                    <div className="divide-y divide-border/[0.04]">
+                      {sponsors.map(s => (
+                        <div key={s.id} className="px-5 py-4 flex items-center justify-between hover:bg-muted/[0.03] transition-colors group">
                           <div className="flex items-center gap-3">
-                            <div className="w-12 h-8 rounded-lg border border-border/20 overflow-hidden bg-background/30 flex items-center justify-center">
-                              {s.logo_url ? <img src={s.logo_url} alt={s.name} className="w-full h-full object-cover" /> : <Image className="h-4 w-4 text-muted-foreground" />}
-                            </div>
+                            {s.logo_url && <img src={s.logo_url} alt={s.name} className="w-8 h-8 rounded-lg object-contain bg-background/50 p-1" />}
                             <div>
                               <div className="flex items-center gap-2">
-                                <span className={`px-1.5 py-0.5 text-[9px] rounded-md uppercase font-mono ${s.tier === "platinum" ? "bg-neon-cyan/15 text-neon-cyan" : s.tier === "gold" ? "bg-yellow-500/15 text-yellow-400" : s.tier === "silver" ? "bg-gray-400/15 text-gray-300" : "bg-neon-orange/15 text-neon-orange"}`}>{s.tier}</span>
-                                <span className="font-mono text-sm font-semibold">{s.name}</span>
+                                <span className="font-medium text-sm">{s.name}</span>
+                                <Badge variant="outline" className="text-[9px] px-1.5 py-0">{s.tier}</Badge>
                               </div>
+                              {s.website_url && <span className="text-[11px] text-muted-foreground/40">{s.website_url}</span>}
                             </div>
                           </div>
-                          <div className="flex items-center gap-1">
-                            <Switch checked={s.is_active} onCheckedChange={() => toggleSponsorActive(s.id, s.is_active)} />
-                            <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => setEditingSponsor(s)}><Edit className="h-3.5 w-3.5 text-muted-foreground" /></Button>
-                            <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => deleteSponsor(s.id)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
+                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setEditingSponsor(s)}><Edit className="h-3.5 w-3.5" /></Button>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => toggleSponsorActive(s.id, s.is_active)}>
+                              {s.is_active ? <Eye className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5 text-muted-foreground/30" />}
+                            </Button>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => deleteSponsor(s.id)}><Trash2 className="h-3.5 w-3.5 text-destructive/60" /></Button>
                           </div>
                         </div>
                       ))}
+                      {sponsors.length === 0 && <div className="py-16 text-center text-muted-foreground/30 text-sm">No sponsors</div>}
                     </div>
                   </C2Panel>
                 )}
 
                 {activeModule === "writeups" && (
-                  <C2Panel title="INTELLIGENCE REPORTS" icon={FileText} color="text-neon-purple">
-                    <div className="p-4 space-y-3 max-h-[600px] overflow-y-auto">
-                      {pendingWriteups.length === 0 ? (
-                        <div className="text-center py-12 text-muted-foreground/50 font-mono text-sm">No pending intel reports</div>
-                      ) : pendingWriteups.map(w => (
-                        <motion.div key={w.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                          className="p-4 rounded-xl border border-neon-orange/15 bg-neon-orange/[0.03]">
-                          <div className="flex items-start justify-between mb-2">
-                            <div>
-                              <h3 className="font-display text-sm font-bold">{w.title}</h3>
-                              <p className="text-[10px] text-muted-foreground/60 font-mono">Target: {w.challenges?.title} • Agent: {w.profiles?.username}</p>
+                  <C2Panel title="WRITEUPS" icon={FileText} color="text-neon-purple">
+                    <div className="divide-y divide-border/[0.04]">
+                      {writeups.map(w => (
+                        <div key={w.id} className="px-5 py-4 flex items-center justify-between hover:bg-muted/[0.03] transition-colors group">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-medium text-sm">{w.title}</span>
+                              <Badge variant={w.is_approved ? "outline" : "destructive"} className="text-[9px] px-1.5 py-0">
+                                {w.is_approved ? "Approved" : "Pending"}
+                              </Badge>
                             </div>
-                            <div className="flex gap-1">
-                              <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-primary hover:text-primary" onClick={() => approveWriteup(w.id)}><CheckCircle className="h-4 w-4" /></Button>
-                              <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-destructive" onClick={() => rejectWriteup(w.id)}><XCircle className="h-4 w-4" /></Button>
+                            <div className="text-[11px] text-muted-foreground/40">
+                              by {w.profiles?.username || "?"} • {w.challenges?.title || "?"} • {new Date(w.created_at).toLocaleDateString()}
                             </div>
                           </div>
-                          <pre className="text-xs font-mono whitespace-pre-wrap text-muted-foreground/60 bg-background/30 p-3 rounded-lg max-h-32 overflow-y-auto">{w.content}</pre>
-                        </motion.div>
+                          {!w.is_approved && (
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => approveWriteup(w.id)}><CheckCircle className="h-3.5 w-3.5 text-primary" /></Button>
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => rejectWriteup(w.id)}><XCircle className="h-3.5 w-3.5 text-destructive/60" /></Button>
+                            </div>
+                          )}
+                        </div>
                       ))}
+                      {writeups.length === 0 && <div className="py-16 text-center text-muted-foreground/30 text-sm">No writeups</div>}
                     </div>
                   </C2Panel>
                 )}
 
                 {activeModule === "competition" && (
-                  <C2Panel title="OPERATIONS CONTROL" icon={Trophy} color="text-primary">
-                    <div className="p-4 max-w-2xl space-y-3">
-                      {competitionSettings && (
+                  <C2Panel title="COMPETITION" icon={Trophy} color="text-primary">
+                    <div className="p-6 space-y-5">
+                      {competitionSettings ? (
                         <>
-                          {[
-                            { label: "Competition Mode", desc: "Enable timed operations", checked: competitionSettings.is_active, onChange: (v: boolean) => updateCompetitionSettings({ is_active: v }) },
-                            { label: "Team Mode", desc: "Team-based scoring", checked: competitionSettings.team_mode, onChange: (v: boolean) => updateCompetitionSettings({ team_mode: v }) },
-                            { label: "Dynamic Scoring", desc: "Points decay with solves", checked: competitionSettings.decay_enabled, onChange: (v: boolean) => updateCompetitionSettings({ decay_enabled: v }) },
-                          ].map(item => (
-                            <div key={item.label} className="flex items-center justify-between p-3.5 rounded-xl border border-border/10 bg-background/20 hover:bg-background/30 transition-colors">
-                              <div><div className="font-mono text-sm font-semibold">{item.label}</div><div className="text-[10px] text-muted-foreground/60">{item.desc}</div></div>
-                              <Switch checked={item.checked} onCheckedChange={item.onChange} />
+                          <div className="flex items-center justify-between p-4 rounded-xl border border-border/[0.06] bg-card/20">
+                            <div>
+                              <div className="font-medium">Competition Status</div>
+                              <div className="text-[11px] text-muted-foreground/40 mt-0.5">
+                                {competitionSettings.is_active ? "Competition is live" : "Competition is paused"}
+                              </div>
                             </div>
-                          ))}
-                          {competitionSettings.decay_enabled && (
-                            <div className="p-3.5 rounded-xl border border-border/10 bg-background/20">
-                              <Label className="text-[10px] font-mono uppercase text-muted-foreground/60">Minimum Points</Label>
-                              <Input type="number" className="mt-1.5" value={competitionSettings.decay_minimum} onChange={e => updateCompetitionSettings({ decay_minimum: parseInt(e.target.value) || 50 })} />
-                            </div>
-                          )}
-                          {competitionSettings.is_active && (
-                            <>
-                              {[
-                                { label: "Start Time", value: competitionSettings.start_time, key: "start_time" },
-                                { label: "End Time", value: competitionSettings.end_time, key: "end_time" },
-                                { label: "Freeze Time", value: competitionSettings.freeze_time, key: "freeze_time" },
-                              ].map(field => (
-                                <div key={field.key} className="p-3.5 rounded-xl border border-border/10 bg-background/20">
-                                  <Label className="text-[10px] font-mono uppercase flex items-center gap-1 text-muted-foreground/60"><Clock className="w-3 h-3" />{field.label}</Label>
-                                  <Input type="datetime-local" className="mt-1.5" value={field.value?.slice(0, 16) || ""}
-                                    onChange={e => updateCompetitionSettings({ [field.key]: e.target.value ? new Date(e.target.value).toISOString() : null } as any)} />
-                                </div>
-                              ))}
-                            </>
-                          )}
-                          <div className={`p-3.5 rounded-xl border ${competitionSettings.is_active ? "border-primary/20 bg-primary/[0.03]" : "border-border/10 bg-background/20"}`}>
-                            <div className="flex items-center gap-2">
-                              <div className={`w-2.5 h-2.5 rounded-full ${competitionSettings.is_active ? "bg-primary animate-pulse" : "bg-muted-foreground/30"}`} />
-                              <span className="font-mono text-sm font-bold">{competitionSettings.is_active ? "OPERATIONS LIVE" : "OPERATIONS STANDBY"}</span>
-                            </div>
+                            <Switch checked={competitionSettings.is_active} onCheckedChange={v => updateCompetitionSettings({ is_active: v })} />
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div><Label className="text-xs">Start Time</Label><Input type="datetime-local" value={competitionSettings.start_time?.slice(0, 16) || ""} onChange={e => updateCompetitionSettings({ start_time: e.target.value ? new Date(e.target.value).toISOString() : null })} /></div>
+                            <div><Label className="text-xs">End Time</Label><Input type="datetime-local" value={competitionSettings.end_time?.slice(0, 16) || ""} onChange={e => updateCompetitionSettings({ end_time: e.target.value ? new Date(e.target.value).toISOString() : null })} /></div>
+                          </div>
+                          <div className="flex items-center justify-between p-4 rounded-xl border border-border/[0.06] bg-card/20">
+                            <div><div className="font-medium">Team Mode</div><div className="text-[11px] text-muted-foreground/40">Enable team-based scoring</div></div>
+                            <Switch checked={competitionSettings.team_mode} onCheckedChange={v => updateCompetitionSettings({ team_mode: v })} />
+                          </div>
+                          <div className="flex items-center justify-between p-4 rounded-xl border border-border/[0.06] bg-card/20">
+                            <div><div className="font-medium">Dynamic Scoring</div><div className="text-[11px] text-muted-foreground/40">Points decay as more people solve</div></div>
+                            <Switch checked={competitionSettings.decay_enabled} onCheckedChange={v => updateCompetitionSettings({ decay_enabled: v })} />
                           </div>
                         </>
+                      ) : (
+                        <div className="py-16 text-center text-muted-foreground/30 text-sm">No competition configured</div>
                       )}
                     </div>
                   </C2Panel>
                 )}
 
                 {activeModule === "contacts" && (
-                  <C2Panel title="COMMUNICATIONS LOG" icon={Mail} color="text-secondary">
-                    <div className="p-4 space-y-3 max-h-[600px] overflow-y-auto">
-                      {contactSubmissions.length === 0 ? (
-                        <div className="text-center py-12 text-muted-foreground/50 font-mono text-sm"><MessageSquare className="w-8 h-8 mx-auto mb-2 opacity-20" />No communications received</div>
-                      ) : contactSubmissions.map(sub => (
-                        <motion.div key={sub.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                          className={`p-3.5 rounded-xl border ${sub.is_resolved ? "border-border/10 bg-background/10 opacity-40" : "border-secondary/15 bg-secondary/[0.03]"}`}>
-                          <div className="flex justify-between items-start mb-2">
-                            <div>
-                              <div className="flex items-center gap-2 mb-0.5">
-                                <span className="font-mono text-sm font-semibold">{sub.subject}</span>
-                                {sub.is_resolved && <Badge variant="outline" className="text-[9px] py-0 border-primary/15 text-primary/60">Resolved</Badge>}
-                              </div>
-                              <div className="text-[10px] text-muted-foreground/50 font-mono flex items-center gap-3">
-                                <span>{sub.name}</span><span>{sub.email}</span><span>{new Date(sub.created_at).toLocaleDateString()}</span>
-                              </div>
+                  <C2Panel title="MESSAGES" icon={Mail} color="text-secondary">
+                    <div className="divide-y divide-border/[0.04]">
+                      {contactSubmissions.map(c => (
+                        <div key={c.id} className="px-5 py-4 flex items-center justify-between hover:bg-muted/[0.03] transition-colors group">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-medium text-sm">{c.subject}</span>
+                              <Badge variant={c.is_resolved ? "outline" : "destructive"} className="text-[9px] px-1.5 py-0">
+                                {c.is_resolved ? "Resolved" : "Open"}
+                              </Badge>
                             </div>
-                            <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => toggleContactResolved(sub.id, sub.is_resolved || false)}>
-                              <CheckCircle className={`h-3.5 w-3.5 ${sub.is_resolved ? "text-muted-foreground/30" : "text-primary"}`} />
-                            </Button>
+                            <div className="text-[11px] text-muted-foreground/40">{c.name} ({c.email}) • {new Date(c.created_at).toLocaleDateString()}</div>
+                            <p className="text-[11px] text-muted-foreground/30 line-clamp-1 mt-1">{c.message}</p>
                           </div>
-                          <p className="text-xs text-muted-foreground/60 bg-background/30 p-2.5 rounded-lg font-mono">{sub.message}</p>
-                          <a href={`mailto:${sub.email}?subject=Re: ${encodeURIComponent(sub.subject)}`} className="text-[10px] text-primary/60 hover:text-primary hover:underline font-mono mt-1.5 inline-block">Reply →</a>
-                        </motion.div>
+                          <Button variant="ghost" size="sm" className="h-8 opacity-0 group-hover:opacity-100 transition-opacity text-xs" onClick={() => toggleContactResolved(c.id, c.is_resolved)}>
+                            {c.is_resolved ? "Reopen" : "Resolve"}
+                          </Button>
+                        </div>
                       ))}
+                      {contactSubmissions.length === 0 && <div className="py-16 text-center text-muted-foreground/30 text-sm">No messages</div>}
                     </div>
                   </C2Panel>
                 )}
@@ -786,30 +742,18 @@ const Admin = () => {
             </AnimatePresence>
           </div>
         </div>
-
-        {/* ═══ BOTTOM STATUS BAR ═══ */}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
-          className="rounded-xl border border-border/10 bg-card/10 px-5 py-2 flex items-center justify-between text-[9px] font-mono text-muted-foreground/40 uppercase tracking-[0.15em]">
-          <span>CyberOps C2 v4.0 • {C2_MODULES.length} modules • {challenges.length} targets • {users.length} operators</span>
-          <span className="flex items-center gap-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-primary/60 animate-pulse" />
-            All systems operational
-          </span>
-        </motion.div>
       </div>
 
-      {/* Admin Promotion Dialog */}
-      <AlertDialog open={!!promotingUserId} onOpenChange={open => !open && setPromotingUserId(null)}>
+      {/* Admin promote dialog */}
+      <AlertDialog open={!!promotingUserId} onOpenChange={(open) => !open && setPromotingUserId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="font-display">Promote to ADMIN?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This grants <span className="font-semibold text-foreground">{users.find(u => u.user_id === promotingUserId)?.username}</span> full administrative privileges.
-            </AlertDialogDescription>
+            <AlertDialogTitle>Promote to Admin?</AlertDialogTitle>
+            <AlertDialogDescription>This will give the user full administrative privileges.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmMakeAdmin} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Confirm Promotion</AlertDialogAction>
+            <AlertDialogAction onClick={confirmMakeAdmin}>Confirm</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
