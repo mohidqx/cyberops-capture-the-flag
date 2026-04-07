@@ -487,7 +487,7 @@ const Admin = () => {
                             <div><Label>Flag</Label><Input value={editingChallenge.flag} onChange={e => setEditingChallenge({ ...editingChallenge, flag: e.target.value })} /></div>
                             <div><Label>Hints (one per line)</Label><Textarea value={editingChallenge.hintsText ?? editingChallenge.hints?.join("\n") ?? ""} onChange={e => setEditingChallenge({ ...editingChallenge, hintsText: e.target.value })} /></div>
                             <div><Label>Hint Costs</Label><Input value={editingChallenge.hintCostsText ?? editingChallenge.hint_costs?.join(",") ?? ""} onChange={e => setEditingChallenge({ ...editingChallenge, hintCostsText: e.target.value })} /></div>
-                            <ChallengeFileUpload files={editingChallenge.files || []} onFilesChange={(files) => setEditingChallenge({ ...editingChallenge, files })} />
+                            <ChallengeFileUpload challengeId={editingChallenge.id} existingFiles={editingChallenge.files || []} onFilesUpdated={(files) => setEditingChallenge({ ...editingChallenge, files })} />
                             <div className="flex gap-2">
                               <Button onClick={updateChallenge} className="flex-1">Save Changes</Button>
                               <Button variant="outline" onClick={() => setEditingChallenge(null)}>Cancel</Button>
